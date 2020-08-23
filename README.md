@@ -16,7 +16,7 @@
 3. Once PyCharm finishes cloning the repo and opens up, go to [File > Settings > Project > Project Interpreter][6]
 4. Next to the Python Interpreter drop down, click the gear icon and choose "Add"
 5. On the left, select "Docker Compose"
-6. In the Configuration Files textbox, select the folder icon. In the popup, click the "+" and browse to `debug-docker-compose.yml`
+6. In the Configuration Files textbox, select the folder icon. In the popup, click the "+" then browse to and select `debug-docker-compose.yml`
 7. In the Service dropdown, select `django-debug`
 8. Click "OK" and then click "OK" again in the settings window
 9. In the top right of the main PyCharm window, make sure the configurations dropdown has "Django Debug" selected.
