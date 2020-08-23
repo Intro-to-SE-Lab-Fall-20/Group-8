@@ -1,0 +1,13 @@
+version: "2"
+services:
+  django-prod:
+    container_name: django_prod
+    build:
+      context: .
+      dockerfile: prod.Dockerfile
+    image: django_image_prod
+    stdin_open: true
+    volumes:
+      - ./code:/app
+    ports:
+      - "8080:8080"

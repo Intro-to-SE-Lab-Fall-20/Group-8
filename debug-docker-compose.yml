@@ -1,0 +1,13 @@
+version: "2"
+services:
+  django-debug:
+    container_name: django_debug
+    build:
+      context: .
+      dockerfile: debug.Dockerfile
+    image: django_image_debug
+    stdin_open: true
+    volumes:
+      - ./code:/app
+    ports:
+      - "8080:8080"
