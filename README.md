@@ -17,11 +17,15 @@
 4. Next to the Python Interpreter drop down, click the gear icon and choose "Add"
 5. On the left, select "Docker Compose"
 6. In the Configuration Files textbox, select the folder icon. In the popup, click the "+" then browse to and select `debug-docker-compose.yml`
-7. In the Service dropdown, select `django-debug`
-8. Click "OK" and then click "OK" again in the settings window
-9. In the top right of the main PyCharm window, make sure the configurations dropdown has "Django Debug" selected.
-10. Click the green play button to start the Django web server. If this is the first time you've done this, it could take a while to download and build the necessary docker images.
-11. Once the server is up and running, open up a browser and go to http://localhost:8080
-12. If everything went well, you should see a rocket ship. Congrats!
+7. In the Service dropdown, select `django-debug` and click "OK"
+8. Next, navigate to Languages & Frameworks > Django
+9. Select "Enable Django Support"
+10. For "Django Project Root", browse to and select the "code" directory
+11. For "Settings", browse to and select "code/project/settings.py"
+12. Click "OK" in the bottmo right
+13. In the top right of the main PyCharm window, make sure the configurations dropdown has "Django Debug" selected.
+14. Click the green play button to start the Django web server. If this is the first time you've done this, it could take a while to download and build the necessary docker images.
+15. Once the server is up and running, open up a browser and go to http://localhost:8080
+16. If everything went well, you should see a rocket ship. Congrats!
 
 [6]: jetbrains://Python/settings?name=Project%3A+Group-8--Python+Interpreter
