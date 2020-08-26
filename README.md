@@ -36,6 +36,6 @@
 ***Start the Webserver***
 1. In the top right of the main PyCharm window, make sure the configurations dropdown has "Django Debug" selected.
 2. Click the green play button to start the Django web server. If this is the first time you've done this, it could take a while to download and build the necessary docker images.
-3. Once the server is up and running, open up a browser and go to http://localhost:8080
+3. Once the server is up and running, open up a browser and go to http://localhost:8000
 4. If everything went well, you should see a rocket ship. Congrats!
 5. To stop the server, click the red stop button in PyCharm.

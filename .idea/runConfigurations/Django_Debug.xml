@@ -7,13 +7,12 @@
       <env name="PYTHONUNBUFFERED" value="1" />
       <env name="DJANGO_SETTINGS_MODULE" value="project.settings" />
     </envs>
-    <option name="SDK_HOME" value="docker-compose://[C:\Users\krthornton\OneDrive\Documents\Software Eng\Lab\Group-8\debug-docker-compose.yml]:django-debug/python" />
     <option name="WORKING_DIRECTORY" value="" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="launchJavascriptDebuger" value="false" />
-    <option name="port" value="8080" />
+    <option name="port" value="8000" />
     <option name="host" value="0" />
     <option name="additionalOptions" value="" />
     <option name="browserUrl" value="" />
