@@ -1,6 +1,14 @@
+# ignore system files
 .DS_Store
 __pycache__/
+
+# ignore IDE settings
 .vscode/
 *.code-workspace
 .idea/
+
+# ignore DB
 *.sqlite3
+
+# ignore user uploaded files
+code/app/media/*
