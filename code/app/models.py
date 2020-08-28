@@ -19,9 +19,31 @@ class Email(models.Model):
     """
 
     uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    recipients = models.ManyToManyField(CustomUser, related_name='recipient')
-    sender = models.ForeignKey(to=CustomUser, on_delete=models.CASCADE, related_name='sender')
+    recipients = models.ManyToManyField(to='RecipientEmail', related_name='recipient_emails')
+    sender = models.ForeignKey(to='CustomUser', on_delete=models.CASCADE, related_name='sender_email')
+    body = models.TextField(blank=True, null=True)
+
+
+class SenderEmail(models.Model):
+    """
+    Represents the relationship between a Sender (CustomUser) and an Email.
+    """
+
+    uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    sender = models.ForeignKey(to='CustomUser', on_delete=models.CASCADE)
+    email = models.ForeignKey(to='Email', on_delete=models.CASCADE)
     is_draft = models.BooleanField(default=True)
+
+
+class RecipientEmail(models.Model):
+    """
+    Represents the relationship between a Recipient (CustomUser) and an Email.
+    """
+
+    uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    recipient = models.ForeignKey(to='CustomUser', on_delete=models.CASCADE)
+    email = models.ForeignKey(to='Email', on_delete=models.CASCADE)
+    is_read = models.BooleanField(default=False)
 
 
 class Attachment(models.Model):
@@ -39,7 +61,7 @@ class Attachment(models.Model):
     ]
 
     uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    email = models.ForeignKey(to=Email, on_delete=models.CASCADE)
+    email = models.ForeignKey(to='Email', on_delete=models.CASCADE)
     type = models.CharField(max_length=20, choices=ATTACH_CHOICES, default=FILE)
     file = models.FileField(upload_to='uploads/files/%Y/%m/%d/')
     image = models.ImageField(upload_to='uploads/images/%Y/%m/%d/')
