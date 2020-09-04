@@ -31,20 +31,12 @@ Kaleb Thornton | [krthornton](https://github.com/krthornton)
 Our project uses the following languages and technologies:
 - **Python** - the main language in which most of the webserver/database code is written
 - **HTML/CSS/JS** - the usual suspects for developing web-app front-ends
-- [**Bootstrap**](Bootstrap) - a collection of prebuilt CSS styles and JS functionalities
-- [**JQuery**](JQuery) - a popular JS library with a bunch of pre-built functionalities
-- [**Django**](Django) - a Python web framework for developing web-apps fast
-- [**SQLite3**](SQLite) - a simple database solution used by default in Django (this could change)
-- [**Docker**](Docker) - a containerization tool to help keep our development environments consistent
-- [**PyCharm**](PyCharm) - Python IDE with support for debugging with Django and Docker
-
-[Bootstrap]: https://getbootstrap.com
-[JQuery]: https://jquery.com
-[Django]: https://www.djangoproject.com/start/overview/
-[Docker]: https://www.docker.com/resources/what-container
-[PyCharm]: https://www.jetbrains.com/pycharm/
-[SQLite]: https://www.sqlite.org/index.html
-
+- [**Bootstrap**](https://getbootstrap.com) - a collection of prebuilt CSS styles and JS functionalities
+- [**JQuery**](https://jquery.com) - a popular JS library with a bunch of pre-built functionalities
+- [**Django**](https://www.djangoproject.com/start/overview/) - a Python web framework for developing web-apps fast
+- [**SQLite3**](https://www.sqlite.org/index.html) - a simple database solution used by default in Django (this could change)
+- [**Docker**](https://www.docker.com/resources/what-container) - a containerization tool to help keep our development environments consistent
+- [**PyCharm**](https://www.jetbrains.com/pycharm/) - Python IDE with support for debugging with Django and Docker
 
 
 # Development Environment Setup
