@@ -34,14 +34,16 @@ Our project uses the following languages and technologies:
 - [**Bootstrap**](Bootstrap) - a collection of prebuilt CSS styles and JS functionalities
 - [**JQuery**](JQuery) - a popular JS library with a bunch of pre-built functionalities
 - [**Django**](Django) - a Python web framework for developing web-apps fast
+- [**SQLite3**](SQLite) - a simple database solution used by default in Django (this could change)
 - [**Docker**](Docker) - a containerization tool to help keep our development environments consistent
 - [**PyCharm**](PyCharm) - Python IDE with support for debugging with Django and Docker
 
-[BootStrap]: https://getbootstrap.com
+[Bootstrap]: https://getbootstrap.com
 [JQuery]: https://jquery.com
 [Django]: https://www.djangoproject.com/start/overview/
 [Docker]: https://www.docker.com/resources/what-container
 [PyCharm]: https://www.jetbrains.com/pycharm/
+[SQLite]: https://www.sqlite.org/index.html
 
 
 
