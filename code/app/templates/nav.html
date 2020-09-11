@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}">
+{% endblock css %}
+
+{% block body %}
+    <body>
+
+        <!-- Navbar -->
+        {% block navbar %}
+            <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+              <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">Simple Email</a>
+              <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+              <ul class="navbar-nav px-3">
+                <li class="nav-item text-nowrap">
+                  <a class="nav-link" href="/logout">Sign out</a>
+                </li>
+              </ul>
+            </nav>
+        {% endblock navbar %}
+
+        <div class="container-fluid">
+            <div class="row">
+
+                <!-- Sidebar -->
+                {% block sidebar %}
+                    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                      <div class="sidebar-sticky pt-3">
+                        <ul class="nav flex-column">
+
+                          <div class="compose-button ml-3 mr-3">
+                            <button type="button" class="btn btn-block btn-outline-secondary">Compose</button>
+                          </div>
+
+                          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                            <span>Folders</span>
+                            <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
+                              <span data-feather="plus-circle"></span>
+                            </a>
+                          </h6>
+
+                          <li class="nav-item">
+                            <a class="nav-link active" href="#">
+                              <span data-feather="inbox"></span>
+                              Inbox <span class="sr-only">(current)</span>
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">
+                              <span data-feather="drafts"></span>
+                              Drafts
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">
+                              <span data-feather="starred"></span>
+                              Starred
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">
+                              <span data-feather="archived"></span>
+                              Archived
+                            </a>
+                          </li>
+                        </ul>
+
+                        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                          <span>Recently Viewed</span>
+                          <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
+                            <span data-feather="plus-circle"></span>
+                          </a>
+                        </h6>
+                        <ul class="nav flex-column mb-2">
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">
+                              <span data-feather="file-text"></span>
+                              Some email
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">
+                              <span data-feather="file-text"></span>
+                              Anotha one
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">
+                              <span data-feather="file-text"></span>
+                              TOP SECRET
+                            </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="#">
+                              <span data-feather="file-text"></span>
+                              Year-end sale
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    </nav>
+                {% endblock sidebar %}
+
+                <!-- Main -->
+                {% block main %}
+                    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+
+                        <!-- Header -->
+                        {% block header %}{% endblock header %}
+
+                      </div>
+
+                      <!-- View -->
+                      {% block view %}{% endblock view %}
+
+                    </main>
+                {% endblock main %}
+
+              </div>
+        </div>
+
+    </body>
+{% endblock body %}
