@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "nav.html" %}
 
 {% block title %}
     Simple Email: Inbox
@@ -18,7 +18,7 @@
     </div>
 {% endblock header %}
 
-{% block body %}
+{% block view %}
     <div class="table-responsive">
         <table class="table table-striped table-sm">
           <tbody>
@@ -138,4 +138,4 @@
         </table>
     </div>
 
-{% endblock body %}
+{% endblock view %}

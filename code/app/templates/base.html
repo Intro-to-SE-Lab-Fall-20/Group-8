@@ -9,19 +9,17 @@
     <!-- Meta -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Jekyll v4.1.1">
-    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/dashboard/">
 
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/alertify/alertify.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/alertify/themes/bootstrap.css' %}">
     {% block css %}{% endblock css %}
 
     <!-- Javascript -->
     <script type="text/javascript" src="{% static 'js/jquery-3.5.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/alertify.min.js' %}"></script>
     {% block javascript %}{% endblock javascript %}
 
     <!-- Title -->
@@ -31,127 +29,23 @@
 
 </head>
 
+<!-- Body -->
+{% block body %}{% endblock body %}
 
-<body>
-
-    <!-- Navbar -->
-    {% block navbar %}
-        <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-          <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">Simple Email</a>
-          <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
-          <ul class="navbar-nav px-3">
-            <li class="nav-item text-nowrap">
-              <a class="nav-link" href="#">Sign out</a>
-            </li>
-          </ul>
-        </nav>
-    {% endblock navbar %}
-
-    <div class="container-fluid">
-        <div class="row">
-
-            <!-- Sidebar -->
-            {% block sidebar %}
-                <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                  <div class="sidebar-sticky pt-3">
-                    <ul class="nav flex-column">
-
-                      <div class="compose-button ml-3 mr-3">
-                        <button type="button" class="btn btn-block btn-outline-secondary">Compose</button>
-                      </div>
-
-                      <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Folders</span>
-                        <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
-                          <span data-feather="plus-circle"></span>
-                        </a>
-                      </h6>
-
-                      <li class="nav-item">
-                        <a class="nav-link active" href="#">
-                          <span data-feather="home"></span>
-                          Inbox <span class="sr-only">(current)</span>
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">
-                          <span data-feather="file"></span>
-                          Drafts
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">
-                          <span data-feather="shopping-cart"></span>
-                          Starred
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">
-                          <span data-feather="users"></span>
-                          Archived
-                        </a>
-                      </li>
-                    </ul>
-
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                      <span>Recently Viewed</span>
-                      <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
-                        <span data-feather="plus-circle"></span>
-                      </a>
-                    </h6>
-                    <ul class="nav flex-column mb-2">
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">
-                          <span data-feather="file-text"></span>
-                          Some email
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">
-                          <span data-feather="file-text"></span>
-                          Anotha one
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">
-                          <span data-feather="file-text"></span>
-                          TOP SECRET
-                        </a>
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="#">
-                          <span data-feather="file-text"></span>
-                          Year-end sale
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </nav>
-            {% endblock sidebar %}
-
-            <!-- Main -->
-            {% block main %}
-                <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-
-                    <!-- Header -->
-                    {% block header %}{% endblock header %}
-
-                  </div>
-
-                  <!-- Body -->
-                  {% block body %}{% endblock body %}
-
-                </main>
-            {% endblock main %}
-
-          </div>
-    </div>
-
-</body>
+<!-- Messages Script -->
+<script>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+                alertify.notify('{{ message }}', 'warning', 5, function() {});
+            {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+                alertify.notify('{{ message }}', 'success', 5, function() {});
+            {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                alertify.notify('{{ message }}', 'error', 0, function() {});
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</script>
 
 
 </html>
