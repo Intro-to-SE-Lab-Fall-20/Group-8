@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/register.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block title %}
+    Simple Email: Register
+{% endblock title %}
+
+{% block body %}
+  <body class="text-center">
+    <form class="form-signin" method="post">
+      {% csrf_token %}
+
+      {#<img class="mb-4" src="Signin%20Template%20%C2%B7%20Bootstrap_files/bootstrap-solid.svg" alt="" width="72" height="72">#}
+
+      <h1 class="h3 mb-4 font-weight-normal">Register</h1>
+
+      <div class="form-group align-left">
+        <label for="{{ form.username.id_for_label }}" class="">Username</label>
+        <input id="{{ form.usernam.id_for_label }}" class="form-control" placeholder="Username" required="" autofocus="">
+      </div>
+
+      <div class="form-group align-left">
+        <label for="{{ form.password1.id_for_label }}" class="">Password</label>
+        <input name="{{ form.password1.html_name }}" type="password" id="{{ form.password1.id_for_label }}" class="form-control" placeholder="Password" required="">
+      </div>
+
+      <div class="form-group align-left">
+        <label for="{{ form.password2.id_for_label }}" class="">Confirm Password</label>
+        <input name="{{ form.password2.html_name }}" type="password" id="{{ form.password2.id_for_label }}" class="form-control" placeholder="Confrim Password" required="">
+      </div>
+
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
+
+      <p class="mt-2 text-muted">Already have an account? Login <a href="/login">here</a>.</p>
+
+    </form>
+  </body>
+{% endblock body %}

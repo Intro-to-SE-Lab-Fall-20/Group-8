@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+
+from .forms import UserRegistrationForm
 
 
 @login_required
@@ -27,6 +29,47 @@ def logout(request):
     messages.success(request, "Successfully logged out!")
 
     return redirect('/login')
+
+
+@require_http_methods(["GET", "POST"])
+def register(request):
+    """
+    Register page for new users of Simple Email.
+    """
+
+    if request.method == "POST":
+        # validate user input
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            # generate new email
+            email = f"{form.fields['username']}@simpleemail.com"
+
+            # create new user
+            user = get_user_model().objects.create_user(
+                username=form.fields['username'],
+                password=form.fields['password'],
+                email=email
+            )
+        else:
+            # user info is bad, notify them
+            for error in form.errors:
+                messages.error(request, error)
+
+        # log the user in
+        auth_login(request, user)
+
+        # redirect to homepage (inbox)
+        redirect('/login')
+
+    else:
+        # check if the user is already logged in
+        if request.user.is_authenticated:
+            return redirect('inbox')
+
+    # create new form for user to register with
+    form = UserRegistrationForm()
+
+    return render(request, 'register.html', {"form": form})
 
 
 @require_http_methods(["GET", "POST"])
