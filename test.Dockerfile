@@ -10,4 +10,4 @@ RUN pip install -r requirements.txt
 EXPOSE 8080
 STOPSIGNAL SIGINT
 ENTRYPOINT ["python", "manage.py"]
-CMD ["runserver", "0:8080"]
+CMD ["test"]
