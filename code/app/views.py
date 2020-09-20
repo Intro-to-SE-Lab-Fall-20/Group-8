@@ -41,26 +41,19 @@ def register(request):
         # validate user input
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            # generate new email
-            email = f"{form.fields['username']}@simpleemail.com"
-
-            # create new user
-            user = get_user_model().objects.create_user(
-                username=form.fields['username'],
-                password=form.fields['password'],
-                email=email
-            )
+            # save form to create user
+            user = form.save()
 
             # log the user in
             auth_login(request, user)
 
             # redirect to homepage (inbox)
-            redirect('/login')
+            return redirect('inbox')
 
         else:
             # user info is bad, notify them
-            for error in form.errors:
-                messages.error(request, error)
+            for error, data in form.errors.items():
+                messages.error(request, data[0])
 
     else:
         # check if the user is already logged in
