@@ -1,5 +1,7 @@
 # Group-8
 
+[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.org/simkimsia/UtilityBehaviors)
+
 ### Project Description
 
 This project aims to design and develop a web-based email client where users will be able to login, send and receive messages, forward messages, and upload attachments.
