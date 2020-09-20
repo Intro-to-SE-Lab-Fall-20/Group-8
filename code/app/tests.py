@@ -93,9 +93,6 @@ class TestAuth(TestCase):
         self.assertRedirects(response, '/login')
         self.assertContains(response, 'Successfully logged out!')
 
-        # debug
-        self.assertTrue(False)
-
 
 class TestInbox(TestCase):
     """
