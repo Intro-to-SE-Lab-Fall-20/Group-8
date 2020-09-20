@@ -7,13 +7,12 @@ class UserRegistrationForm(forms.Form):
     Form used for registering new users to Simple Email.
     """
 
-    username = forms.CharField()
-    password1 = forms.PasswordInput()
-    password2 = forms.PasswordInput()
+    re_password = forms.CharField(max_length=128)
 
-    def clean_username(self):
-        """
-        Cleans the username input. Checks that the username has not already been taken.
-        """
-
-        return
+    class Meta:
+        model = CustomUser
+        fields = [
+            'username',
+            'password',
+            're_password'
+        ]

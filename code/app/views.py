@@ -50,24 +50,25 @@ def register(request):
                 password=form.fields['password'],
                 email=email
             )
+
+            # log the user in
+            auth_login(request, user)
+
+            # redirect to homepage (inbox)
+            redirect('/login')
+
         else:
             # user info is bad, notify them
             for error in form.errors:
                 messages.error(request, error)
-
-        # log the user in
-        auth_login(request, user)
-
-        # redirect to homepage (inbox)
-        redirect('/login')
 
     else:
         # check if the user is already logged in
         if request.user.is_authenticated:
             return redirect('inbox')
 
-    # create new form for user to register with
-    form = UserRegistrationForm()
+        # create new form for user to register with
+        form = UserRegistrationForm()
 
     return render(request, 'register.html', {"form": form})
 
