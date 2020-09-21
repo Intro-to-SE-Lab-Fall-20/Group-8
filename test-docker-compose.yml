@@ -1,11 +1,11 @@
 version: "2"
 services:
-  django-prod:
-    container_name: django_prod
+  django-test:
+    container_name: django_test
     build:
       context: .
-      dockerfile: prod.Dockerfile
-    image: django_image_prod
+      dockerfile: test.Dockerfile
+    image: django_image_test
     stdin_open: true
     volumes:
       - ./code:/app
