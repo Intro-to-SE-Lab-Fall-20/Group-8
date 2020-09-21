@@ -31,7 +31,15 @@ class UserRegistrationForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+
+        # hash user password
         user.set_password(self.cleaned_data["password"])
+
+        # create email for user
+        user.email = f"{self.cleaned_data['username']}@simpleemail.com"
+
+        # save user to DB
         if commit:
             user.save()
+
         return user
