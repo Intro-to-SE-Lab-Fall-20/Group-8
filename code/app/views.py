@@ -58,7 +58,6 @@ def login(request):
         else:
             # user's info is bad, notify them
             messages.warning(request, "Invalid username or password.")
-            return redirect('/login')
 
     else:
         # check if the user is already logged in

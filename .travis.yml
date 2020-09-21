@@ -1,0 +1,7 @@
+language: python
+
+services:
+  - docker
+
+script:
+  - docker-compose -f test-docker-compose.yml up --exit-code-from django-test
