@@ -1,6 +1,6 @@
 # Group-8
 
-[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.org/simkimsia/UtilityBehaviors)
+[![Build Status](https://travis-ci.org/Intro-to-SE-Lab-Fall-20/Group-8.svg)](https://travis-ci.org/github/Intro-to-SE-Lab-Fall-20/Group-8)
 
 ### Project Description
 
