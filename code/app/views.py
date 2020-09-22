@@ -10,6 +10,7 @@ from .forms import UserRegistrationForm
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
 def inbox(request):
     """
     Home page of Simple Email. Serves the user's inbox.
@@ -19,14 +20,24 @@ def inbox(request):
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
+def compose(request):
+    """
+    Serves the compose page. Creates emails when users finish composing.
+    """
+
+    return render(request, 'compose.html')
+
+
+@login_required
 def logout(request):
     """
     Logout view for Simple Email.
     Logs a user out and notifies redirects them to login page.
     """
 
+    messages.success(request, f"See ya later {request.user.username}!")
     auth_logout(request)
-    messages.success(request, "Successfully logged out!")
 
     return redirect('/login')
 
@@ -48,6 +59,7 @@ def register(request):
             auth_login(request, user)
 
             # redirect to homepage (inbox)
+            messages.success(request, f"Welcome {request.user.username}!")
             return redirect('inbox')
 
         else:
@@ -90,6 +102,7 @@ def login(request):
                 request.session.set_expiry(0)
 
             # redirect to inbox
+            messages.success(request, f"Welcome back {request.user.username}!")
             return redirect('inbox')
 
         else:
