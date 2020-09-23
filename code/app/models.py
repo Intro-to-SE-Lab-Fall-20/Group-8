@@ -22,6 +22,7 @@ class Email(models.Model):
     recipients = models.ManyToManyField(to='Recipient', related_name='email_recipients')
     sender = models.ForeignKey(to='Sender', on_delete=models.CASCADE, related_name='email_sender')
     body = models.TextField(blank=True, null=True)
+    subject = models.TextField(blank=False)
 
 
 class Sender(models.Model):
@@ -33,6 +34,7 @@ class Sender(models.Model):
     user = models.ForeignKey(to='CustomUser', on_delete=models.CASCADE)
     email = models.ForeignKey(to='Email', on_delete=models.CASCADE, related_name='sender_email')
     is_draft = models.BooleanField(default=True)
+    is_forward = models.BooleanField(default=False)
 
 
 class Recipient(models.Model):
@@ -45,6 +47,7 @@ class Recipient(models.Model):
     email = models.ForeignKey(to='Email', on_delete=models.CASCADE)
     is_read = models.BooleanField(default=False)
     is_forward = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
 
 
 class Attachment(models.Model):

@@ -43,3 +43,35 @@ class UserRegistrationForm(forms.ModelForm):
             user.save()
 
         return user
+
+
+class ComposeForm(forms.Form):
+    """
+    Form for creating new emails. This creates new instances of Email, Sender, and Recipient.
+    """
+
+    subject = forms.CharField(strip=True)
+    sender = forms.CharField(required=True)
+    recipients = forms.CharField(required=True)
+    body = forms.CharField(required=True)
+    is_draft = forms.BooleanField(initial=False)
+
+    def clean(self):
+        # check if the sender is a real user
+        email = self.cleaned_data['sender']
+        username = email.split('@')[0]
+        sender_query = CustomUser.objects.filter(username=username)
+        if not sender_query:
+            raise ValidationError(f"Invalid sender email: \"{email}\"")
+
+        # validate recipients emails
+        emails = self.cleaned_data['recipients'].split(',')
+        for email in emails:
+            username = email.split('@')[0]
+            recipient_query = CustomUser.objects.filter(username=username)
+            print(sender_query, username)
+            if not recipient_query:
+                raise ValidationError(f"Invalid recipient email: \"{email}\"")
+
+        # everything checks out
+        return

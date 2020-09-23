@@ -6,7 +6,7 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, ComposeForm
 
 
 @login_required
@@ -26,7 +26,25 @@ def compose(request):
     Serves the compose page. Creates emails when users finish composing.
     """
 
-    return render(request, 'compose.html')
+    if request.method == 'POST':
+        form = ComposeForm(request.POST)
+        if form.is_valid():
+            # create email instance and respective relations
+            form.create_email_and_relations()   # TODO: actually implement this
+
+            # notify user and redirect to inbox
+            messages.success(request, "Message sent!")
+            return redirect('/inbox')
+
+        else:
+            # compose is bad, notify user
+            for error, data in form.errors.items():
+                messages.error(request, data[0])
+
+    else:
+        form = ComposeForm()
+
+    return render(request, 'compose.html', {'form': form})
 
 
 @login_required
