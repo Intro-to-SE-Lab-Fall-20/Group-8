@@ -18,11 +18,11 @@ class Email(models.Model):
     Defines the database object representing an email.
     """
 
+    default_subject = 'bbc1ca1f-9f31-4c59-9c12-6af7f3c4b2eb'
+
     uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    recipients = models.ManyToManyField(to='Recipient', related_name='email_recipients')
-    sender = models.ForeignKey(to='Sender', on_delete=models.CASCADE, related_name='email_sender')
     body = models.TextField(blank=True, null=True)
-    subject = models.TextField(blank=False)
+    subject = models.TextField(blank=False, default=default_subject)
 
 
 class Sender(models.Model):

@@ -34,7 +34,7 @@ def compose(request):
 
             # notify user and redirect to inbox
             messages.success(request, "Message sent!")
-            return redirect('/inbox')
+            return redirect('/')
 
         else:
             # compose is bad, notify user
