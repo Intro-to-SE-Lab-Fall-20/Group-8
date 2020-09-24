@@ -50,12 +50,12 @@ class ComposeForm(forms.Form):
     Form for creating new emails.
     """
 
-    subject = forms.CharField(strip=True)
-    sender = forms.CharField(required=True)
-    recipients = forms.CharField(required=True)
-    body = forms.CharField(required=True)
-    is_draft = forms.BooleanField(required=False)
-    is_forward = forms.BooleanField(required=False)
+    subject = forms.CharField(strip=True, label='Subject:')
+    sender = forms.CharField(required=True, label='From:')
+    recipients = forms.CharField(required=True, label='Recipients:')
+    body = forms.CharField(required=True, label='Body:')
+    is_draft = forms.BooleanField(required=False, label='Draft:')
+    is_forward = forms.BooleanField(required=False, label='Forward:')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

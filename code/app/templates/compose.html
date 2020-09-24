@@ -1,4 +1,10 @@
 {% extends "nav.html" %}
+{% load static %}
+
+{% block css %}
+    {{ block.super }}
+    <link href="{% static 'css/compose.css' %}" rel="stylesheet">
+{% endblock css %}
 
 {% block title %}
     Simple Email: Compose
@@ -17,9 +23,21 @@
 
 {% block view %}
     <div>
+
         <form id="compose-form" action="/compose" method="post">
             {% csrf_token %}
-            {{ form.as_table }}
+            {{ form.sender.label }}
+            {{ form.sender}}
+            <br>
+            {{ form.recipients.label }}
+            {{ form.recipients }}
+            <br>
+            {{ form.subject.label }}
+            {{ form.subject }}
+            <br>
+            {{ form.body.label }}
+            {{ form.body }}
+
         </form>
     </div>
 
