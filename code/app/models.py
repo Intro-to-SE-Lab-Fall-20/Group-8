@@ -18,10 +18,11 @@ class Email(models.Model):
     Defines the database object representing an email.
     """
 
+    default_subject = 'bbc1ca1f-9f31-4c59-9c12-6af7f3c4b2eb'
+
     uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    recipients = models.ManyToManyField(to='Recipient', related_name='email_recipients')
-    sender = models.ForeignKey(to='Sender', on_delete=models.CASCADE, related_name='email_sender')
     body = models.TextField(blank=True, null=True)
+    subject = models.TextField(blank=False, default=default_subject)
 
 
 class Sender(models.Model):
@@ -33,6 +34,7 @@ class Sender(models.Model):
     user = models.ForeignKey(to='CustomUser', on_delete=models.CASCADE)
     email = models.ForeignKey(to='Email', on_delete=models.CASCADE, related_name='sender_email')
     is_draft = models.BooleanField(default=True)
+    is_forward = models.BooleanField(default=False)
 
 
 class Recipient(models.Model):
@@ -45,6 +47,7 @@ class Recipient(models.Model):
     email = models.ForeignKey(to='Email', on_delete=models.CASCADE)
     is_read = models.BooleanField(default=False)
     is_forward = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
 
 
 class Attachment(models.Model):

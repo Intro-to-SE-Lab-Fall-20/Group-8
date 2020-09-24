@@ -6,7 +6,7 @@ https://docs.djangoproject.com/en/3.1/topics/testing/tools/
 from django.test import TestCase, Client
 from django.contrib import auth
 
-from .models import CustomUser
+from .models import CustomUser, Email, Sender, Recipient
 
 
 class TestAuth(TestCase):
@@ -25,7 +25,6 @@ class TestAuth(TestCase):
             'password': 'test_password'
         }
         self.test_user = CustomUser.objects.create_user(**self.credentials)
-        self.test_user.save()
 
         # create test client
         self.client = Client()
@@ -80,6 +79,7 @@ class TestAuth(TestCase):
         # validate the user is logged in and redirected to homepage
         self.assertTrue(response.context['user'].is_authenticated)
         self.assertNotContains(response, "Invalid username or password.")
+        self.assertContains(response, f'Welcome back {self.credentials["username"]}!')
         self.assertRedirects(response, '/')
 
     def test_logout(self):
@@ -99,25 +99,28 @@ class TestAuth(TestCase):
 
         # validate that the user was redirect to the login page with a success message
         self.assertRedirects(response, '/login')
-        self.assertContains(response, 'Successfully logged out!')
+        self.assertContains(response, f'See ya later {self.credentials["username"]}!')
 
     def test_registration_success(self):
         """
         Tests successfully registering a new user.
         """
 
+        new_credentials = {
+            'username': 'some_user',
+            'password': 'some_password',
+            're_password': 'some_password'
+        }
+
         # submit register form with new credentials
         response = self.client.post(
             path='/register',
-            data={
-                'username': 'some_user',
-                'password': 'some_password',
-                're_password': 'some_password'
-            },
+            data=new_credentials,
             follow=True
         )
 
         # validate the user is logged in and redirected to the homepage (inbox)
+        self.assertContains(response, f'Welcome {new_credentials["username"]}!')
         self.assertTrue(response.context['user'].is_authenticated)
         self.assertRedirects(response, '/')
 
@@ -132,11 +135,7 @@ class TestAuth(TestCase):
         # submit an invalid, already existing credential
         response = self.client.post(
             path='/register',
-            data={
-                'username': self.credentials['username'],
-                'password': self.credentials['password'],
-                're_password': self.credentials['password']
-            }
+            data=self.credentials
         )
 
         # validate that it rejects and gives error message
@@ -145,9 +144,186 @@ class TestAuth(TestCase):
         self.assertFalse(response.context['user'].is_authenticated)
 
 
+class TestCompose(TestCase):
+    """
+    Tests the compose functionality of the website.
+    """
+
+    def setUp(self):
+        """
+        Sets up some prerequisites before each test.
+        """
+
+        # create sender user
+        self.credentials = {
+            'username': 'test_user',
+            'password': 'test_password'
+        }
+        self.sender = CustomUser.objects.create_user(**self.credentials, email="test_user@email.com")
+
+        # create test client and log in as sender user
+        self.client = Client()
+        self.client.login(**self.credentials)
+
+        # create some recipient users
+        self.recipients = [
+            CustomUser.objects.create_user(
+                username="recipient_one",
+                password="recipient_one",
+                email="recipient_one@email.com"
+            ),
+            CustomUser.objects.create_user(
+                username="recipient_two",
+                password="recipient_two",
+                email="recipient_two@email.com"
+            )
+        ]
+
+    def test_load_compose(self):
+        """
+        Tests if the compose.html page loads.
+        """
+
+        response = self.client.get('/compose')
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_compose_success(self):
+        """
+        Tests submitting a compose form with valid inputs.
+        """
+
+        # build some valid form data
+        form_data = {
+            'subject': 'This is a good subject',
+            'sender': f"{self.sender.email}",
+            'recipients': ''.join(f"{user.email}," for user in self.recipients),
+            'body': 'This is a valid body',
+            'is_draft': 'false',
+            'is_forward': 'false'
+        }
+
+        # submit compose form
+        response = self.client.post(
+            path='/compose',
+            data=form_data,
+            follow=True
+        )
+
+        # validate form was submitted successfully
+        self.assertContains(response, f'Message sent!')
+        self.assertRedirects(response, '/')
+
+        # grab Sender and Email objects from DB
+        sender = Sender.objects.get(user=self.sender)
+        email = Email.objects.get(sender_email=sender)
+
+        # validate Sender
+        self.assertFalse(sender.is_draft)
+        self.assertFalse(sender.is_forward)
+        self.assertEqual(sender.email, email)
+
+        # validate Email
+        self.assertEqual(email.body, form_data['body'])
+        self.assertEqual(email.subject, form_data['subject'])
+
+        # validate Recipients
+        for recipient_user in self.recipients:
+            recipient = Recipient.objects.get(user=recipient_user)
+            self.assertEqual(recipient.email, email)
+            self.assertFalse(recipient.is_read)
+            self.assertFalse(recipient.is_forward)
+            self.assertFalse(recipient.is_archived)
+
+    def test_compose_invalid_subject(self):
+        """
+        Tests submitting a compose form with an invalid subject.
+        """
+
+        # build some valid form data
+        form_data = {
+            'subject': '',
+            'sender': f"{self.sender.email}",
+            'recipients': ''.join(f"{user.email}," for user in self.recipients),
+            'body': 'This is a valid body',
+            'is_draft': 'false',
+            'is_forward': 'false'
+        }
+
+        # submit compose form
+        response = self.client.post(
+            path='/compose',
+            data=form_data,
+            follow=True
+        )
+
+        # validate form was submitted successfully
+        self.assertContains(response, f'Invalid subject: subject cannot be empty!')
+        self.assertEqual(response.status_code, 200)
+
+        # make sure that no objects were actually created in the db
+        self.assertEqual(Email.objects.all().count(), 0)
+        self.assertEqual(Sender.objects.all().count(), 0)
+        self.assertEqual(Recipient.objects.all().count(), 0)
+
+    def test_compose_invalid_recipient(self):
+        """
+        Tests submitting a compose form with an invalid recipient.
+        """
+
+        # build some valid form data
+        form_data = {
+            'subject': '',
+            'sender': f"{self.sender.email}",
+            'recipients': 'invalid_recipient',
+            'body': 'This is a valid body',
+            'is_draft': 'false',
+            'is_forward': 'false'
+        }
+
+        # submit compose form
+        response = self.client.post(
+            path='/compose',
+            data=form_data,
+            follow=True
+        )
+
+        # validate form was submitted successfully
+        self.assertContains(response, f'Invalid recipients: one of your recipients was not found!')
+        self.assertEqual(response.status_code, 200)
+
+        # make sure that no objects were actually created in the db
+        self.assertEqual(Email.objects.all().count(), 0)
+        self.assertEqual(Sender.objects.all().count(), 0)
+        self.assertEqual(Recipient.objects.all().count(), 0)
+
+
 class TestInbox(TestCase):
     """
     Tests the main inbox functionality of the website.
     """
 
-    # TODO: add tests for inbox
+    def setUp(self):
+        """
+        Sets up some prerequisites before each test.
+        """
+
+        # create dummy user
+        self.credentials = {
+            'username': 'test_user',
+            'password': 'test_password'
+        }
+        self.test_user = CustomUser.objects.create_user(**self.credentials)
+
+        # create test client and log in the user
+        self.client = Client()
+        self.client.login(**self.credentials)
+
+    def test_load_inbox(self):
+        """
+        Tests that the inbox.html page loads.
+        """
+
+        response = self.client.get('/')
+
+        self.assertEqual(response.status_code, 200)

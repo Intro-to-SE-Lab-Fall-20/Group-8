@@ -1,4 +1,4 @@
-from .models import CustomUser
+from .models import CustomUser, Email, Sender, Recipient
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -43,3 +43,92 @@ class UserRegistrationForm(forms.ModelForm):
             user.save()
 
         return user
+
+
+class ComposeForm(forms.Form):
+    """
+    Form for creating new emails.
+    """
+
+    subject = forms.CharField(strip=True)
+    sender = forms.CharField(required=True)
+    recipients = forms.CharField(required=True)
+    body = forms.CharField(required=True)
+    is_draft = forms.BooleanField(required=False)
+    is_forward = forms.BooleanField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # setup some state vars
+        self.sender_user = None
+        self.recipient_users = []
+
+    def clean(self):
+        """
+        Cleans the form's input data.
+        """
+
+        # call super clean to do basic cleaning
+        super().clean()
+
+        # check if the sender is a real user
+        email = self.cleaned_data['sender']
+        sender_query = CustomUser.objects.filter(email=email)
+        if not sender_query:
+            raise ValidationError(f"Invalid sender email: \"{email}\"")
+        else:
+            self.sender_user = sender_query[0]
+
+        # validate recipients emails
+        emails = self.cleaned_data['recipients'].split(',')
+        for email in emails:
+            email = email.strip()
+            if not email:
+                continue    # skip this email if it's empty
+            recipient_query = CustomUser.objects.filter(email=email)
+            if not recipient_query:
+                raise ValidationError(f"Invalid recipient email: \"{email}\"")
+            else:
+                self.recipient_users.append(recipient_query[0])
+
+        # everything checks out
+        return
+
+    def create_email_and_relations(self):
+        """
+        This creates new instances of Email, Sender, and Recipient.
+        Returns new instance of Email.
+        """
+
+        # validate that this form is valid first
+        if not self.is_valid():
+            return None
+
+        # create email object
+        email = Email.objects.create(
+            body=self.cleaned_data['body'],
+            subject=self.cleaned_data['subject']
+        )
+
+        # create sender object
+        sender = Sender.objects.create(
+            user=self.sender_user,
+            email=email,
+            is_draft=self.cleaned_data['is_draft'],
+            is_forward=self.cleaned_data['is_forward']
+        )
+
+        # create recipients objects
+        recipients = []
+        for recipient_user in self.recipient_users:
+            recipients.append(
+                Recipient.objects.create(
+                    user=recipient_user,
+                    email=email,
+                    is_forward=self.cleaned_data['is_forward']
+                )
+            )
+
+        # everything was created successfully
+        return email

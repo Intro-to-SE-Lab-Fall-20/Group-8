@@ -6,10 +6,11 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, ComposeForm
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
 def inbox(request):
     """
     Home page of Simple Email. Serves the user's inbox.
@@ -19,14 +20,51 @@ def inbox(request):
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
+def compose(request):
+    """
+    Serves the compose page. Creates emails when users finish composing.
+    """
+
+    if request.method == 'POST':
+        form = ComposeForm(request.POST)
+        if form.is_valid():
+            # create email instance and respective relations
+            form.create_email_and_relations()
+
+            # notify user and redirect to inbox
+            messages.success(request, "Message sent!")
+            return redirect('/')
+
+        else:
+            # compose is bad, notify user
+            for error, data in form.errors.items():
+                if error == 'subject':
+                    messages.error(request, 'Invalid subject: subject cannot be empty!')
+                    continue
+
+                elif error == '__all__':
+                    if 'recipient' in data[0]:
+                        messages.error(request, 'Invalid recipients: one of your recipients was not found!')
+                        continue
+
+                messages.error(request, data[0])
+
+    else:
+        form = ComposeForm()
+
+    return render(request, 'compose.html', {'form': form})
+
+
+@login_required
 def logout(request):
     """
     Logout view for Simple Email.
     Logs a user out and notifies redirects them to login page.
     """
 
+    messages.success(request, f"See ya later {request.user.username}!")
     auth_logout(request)
-    messages.success(request, "Successfully logged out!")
 
     return redirect('/login')
 
@@ -48,6 +86,7 @@ def register(request):
             auth_login(request, user)
 
             # redirect to homepage (inbox)
+            messages.success(request, f"Welcome {request.user.username}!")
             return redirect('inbox')
 
         else:
@@ -90,6 +129,7 @@ def login(request):
                 request.session.set_expiry(0)
 
             # redirect to inbox
+            messages.success(request, f"Welcome back {request.user.username}!")
             return redirect('inbox')
 
         else:

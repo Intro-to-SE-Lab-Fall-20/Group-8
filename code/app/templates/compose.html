@@ -1,0 +1,26 @@
+{% extends "nav.html" %}
+
+{% block title %}
+    Simple Email: Compose
+{% endblock title %}
+
+{% block header %}
+    <h1 class="h2">Compose</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-danger">Discard</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">Save Draft</button>
+            <button type="submit" form="compose-form" class="btn btn-sm btn-outline-primary">Send</button>
+        </div>
+    </div>
+{% endblock header %}
+
+{% block view %}
+    <div>
+        <form id="compose-form" action="/compose" method="post">
+            {% csrf_token %}
+            {{ form.as_table }}
+        </form>
+    </div>
+
+{% endblock view %}
