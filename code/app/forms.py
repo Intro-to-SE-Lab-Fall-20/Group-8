@@ -74,8 +74,7 @@ class ComposeForm(forms.Form):
 
         # check if the sender is a real user
         email = self.cleaned_data['sender']
-        username = email.split('@')[0]
-        sender_query = CustomUser.objects.filter(username=username)
+        sender_query = CustomUser.objects.filter(email=email)
         if not sender_query:
             raise ValidationError(f"Invalid sender email: \"{email}\"")
         else:

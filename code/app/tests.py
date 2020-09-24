@@ -235,6 +235,68 @@ class TestCompose(TestCase):
             self.assertFalse(recipient.is_forward)
             self.assertFalse(recipient.is_archived)
 
+    def test_compose_invalid_subject(self):
+        """
+        Tests submitting a compose form with an invalid subject.
+        """
+
+        # build some valid form data
+        form_data = {
+            'subject': '',
+            'sender': f"{self.sender.email}",
+            'recipients': ''.join(f"{user.email}," for user in self.recipients),
+            'body': 'This is a valid body',
+            'is_draft': 'false',
+            'is_forward': 'false'
+        }
+
+        # submit compose form
+        response = self.client.post(
+            path='/compose',
+            data=form_data,
+            follow=True
+        )
+
+        # validate form was submitted successfully
+        self.assertContains(response, f'Invalid subject: subject cannot be empty!')
+        self.assertEqual(response.status_code, 200)
+
+        # make sure that no objects were actually created in the db
+        self.assertEqual(Email.objects.all().count(), 0)
+        self.assertEqual(Sender.objects.all().count(), 0)
+        self.assertEqual(Recipient.objects.all().count(), 0)
+
+    def test_compose_invalid_recipient(self):
+        """
+        Tests submitting a compose form with an invalid recipient.
+        """
+
+        # build some valid form data
+        form_data = {
+            'subject': '',
+            'sender': f"{self.sender.email}",
+            'recipients': 'invalid_recipient',
+            'body': 'This is a valid body',
+            'is_draft': 'false',
+            'is_forward': 'false'
+        }
+
+        # submit compose form
+        response = self.client.post(
+            path='/compose',
+            data=form_data,
+            follow=True
+        )
+
+        # validate form was submitted successfully
+        self.assertContains(response, f'Invalid recipients: one of your recipients was not found!')
+        self.assertEqual(response.status_code, 200)
+
+        # make sure that no objects were actually created in the db
+        self.assertEqual(Email.objects.all().count(), 0)
+        self.assertEqual(Sender.objects.all().count(), 0)
+        self.assertEqual(Recipient.objects.all().count(), 0)
+
 
 class TestInbox(TestCase):
     """
