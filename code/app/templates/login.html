@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block css %}
+    {{ block.super }}
     <link href="{% static 'css/login.css' %}" rel="stylesheet">
 {% endblock css %}
 
@@ -16,7 +17,7 @@
 
       {#<img class="mb-4" src="Signin%20Template%20%C2%B7%20Bootstrap_files/bootstrap-solid.svg" alt="" width="72" height="72">#}
 
-      <h1 class="h3 mb-4 font-weight-normal">Please sign in</h1>
+      <h1 class="h3 mb-4 font-weight-normal">Simple Email</h1>
 
       <label for="inputUsername" class="sr-only">Username</label>
       <input name="username" id="inputUsername" class="form-control" placeholder="Username" required="" autofocus="">
@@ -29,7 +30,8 @@
         </label>
       </div>
 
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+
+      <button class="btn btn-lg btn-primary btn-block btn-color" type="submit">Sign in</button>
 
       <p class="mt-2 mb-3 text-muted">New here? <a href="/register">Register</a> for free!</p>
 
