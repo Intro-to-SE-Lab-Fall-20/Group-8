@@ -12,6 +12,8 @@
 
 {% block javascript %}
     {{ block.super }}
+
+    {# TinyMCE Compose Text Editor #}
     <script src="https://cdn.tiny.cloud/1/atcv4hj8bhdb3vq7uxn51n7l6fj8qom8div5jxfemgp9h2dm/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
     <script>
       tinymce.init({
@@ -20,13 +22,28 @@
               'bullist numlist outdent indent | link image | print preview media fullpage | '
       });
     </script>
+
+    {# Delete Warning Modal #}
+    <script>
+        function display_modal(event) {
+            alertify.confirm(
+                'Confirm Discard',
+                'Are you sure you want to discard this message?',
+                function () {
+                    window.location.replace('/')
+                },
+                function () {}
+            )
+        }
+    </script>
+
 {% endblock javascript %}
 
 {% block header %}
     <h1 class="h2">Compose</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group mr-2">
-            <button type="button" class="btn btn-sm btn-outline-danger">Discard</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="display_modal()">Discard</button>
             <button type="button" class="btn btn-sm btn-outline-secondary">Save Draft</button>
             <button type="submit" form="compose-form" class="btn btn-sm btn-outline-primary">Send</button>
         </div>

@@ -231,6 +231,7 @@ class TestCompose(TestCase):
         for recipient_user in self.recipients:
             recipient = Recipient.objects.get(user=recipient_user)
             self.assertEqual(recipient.email, email)
+            self.assertTrue(recipient.is_sent)
             self.assertFalse(recipient.is_read)
             self.assertFalse(recipient.is_forward)
             self.assertFalse(recipient.is_archived)
@@ -298,6 +299,41 @@ class TestCompose(TestCase):
         self.assertEqual(Recipient.objects.all().count(), 0)
 
 
+def create_email(subject, content, sender, recipients, is_draft, is_forward):
+    """
+    Helper function for setting up the DB for testing.
+    Creates an Email instance along with respective Sender and Recipient relations.
+    """
+
+    # create email object
+    email = Email.objects.create(
+        body=content,
+        subject=subject
+    )
+
+    # create sender object
+    sender_relation = Sender.objects.create(
+        user=sender,
+        email=email,
+        is_draft=is_draft,
+        is_forward=is_forward
+    )
+
+    # create recipients objects
+    recipient_relations = []
+    for recipient in recipients:
+        recipient_relations.append(
+            Recipient.objects.create(
+                user=recipient,
+                email=email,
+                is_sent=not is_draft,
+                is_forward=is_forward
+            )
+        )
+
+    return email, sender_relation, recipient_relations
+
+
 class TestInbox(TestCase):
     """
     Tests the main inbox functionality of the website.
@@ -319,6 +355,13 @@ class TestInbox(TestCase):
         self.client = Client()
         self.client.login(**self.credentials)
 
+        # create a test sender user
+        self.sender = CustomUser.objects.create_user(
+            username="recipient_one",
+            password="recipient_one",
+            email="recipient_one@email.com"
+        )
+
     def test_load_inbox(self):
         """
         Tests that the inbox.html page loads.
@@ -327,3 +370,59 @@ class TestInbox(TestCase):
         response = self.client.get('/')
 
         self.assertEqual(response.status_code, 200)
+
+    def test_inbox_received_emails(self):
+        """
+        Tests that the inbox view correctly displays emails received by a user.
+        """
+
+        # create some test emails
+        create_email(
+            subject='Testing subject',
+            content='Testing content',
+            sender=self.sender,
+            recipients=[self.test_user],
+            is_draft=False,
+            is_forward=False
+        )
+        create_email(
+            subject='Another subject',
+            content='Even more content',
+            sender=self.sender,
+            recipients=[self.test_user],
+            is_draft=False,
+            is_forward=False
+        )
+
+        # check that the inbox renders this email correctly
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 2)
+
+    def test_inbox_not_received_emails(self):
+        """
+        Tests that the inbox view does NOT display emails that have not been sent yet.
+        """
+
+        # create a test email
+        create_email(
+            subject='Testing subject',
+            content='Testing content',
+            sender=self.sender,
+            recipients=[self.test_user],
+            is_draft=True,
+            is_forward=False
+        )
+        create_email(
+            subject='Another subject',
+            content='Even more content',
+            sender=self.sender,
+            recipients=[self.test_user],
+            is_draft=True,
+            is_forward=False
+        )
+
+        # check that the inbox renders no emails this time
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 0)

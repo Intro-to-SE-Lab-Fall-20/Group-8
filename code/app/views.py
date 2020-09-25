@@ -1,22 +1,54 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
 from .forms import UserRegistrationForm, ComposeForm
+from .models import Recipient
 
 
 @login_required
 @require_http_methods(['GET', 'POST'])
-def inbox(request):
+def inbox(request, folder=None):
     """
     Home page of Simple Email. Serves the user's inbox.
     """
 
-    return render(request, 'inbox.html', {})
+    emails = []
+
+    if folder == 'archive':
+        pass
+
+    elif folder == 'drafts':
+        pass
+
+    elif folder == 'outbox':
+        pass
+
+    else:
+        # must be the inbox, just display all received emails
+        folder = 'inbox'
+        recipients = Recipient.objects.filter(user=request.user)
+        for recipient in recipients:
+            if not recipient.is_sent:
+                continue    # skip this email since it hasn't been sent yet (still a draft)
+
+            email = recipient.email
+            emails.append({
+                'uid': email.uid,
+                'subject': email.subject,
+                'from': email.sender_email.all()[0].user.email,
+                'to': ', '.join([recipient.user.email for recipient in email.recipient_set.all()]),
+                'body': email.body
+            })
+
+    return render(request, 'inbox.html', {
+        'folder': folder,
+        'emails': emails
+    })
 
 
 @login_required
