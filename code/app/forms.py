@@ -50,7 +50,7 @@ class ComposeForm(forms.Form):
     Form for creating new emails.
     """
 
-    subject = forms.CharField(strip=True, label='Subject:')
+    subject = forms.CharField(strip=True, label='Subject:   ')
     sender = forms.CharField(required=True, label='From:')
     recipients = forms.CharField(required=True, label='Recipients:')
     body = forms.CharField(required=True, label='Body:')
