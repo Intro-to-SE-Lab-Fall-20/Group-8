@@ -45,6 +45,7 @@ class Recipient(models.Model):
     uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(to='CustomUser', on_delete=models.CASCADE)
     email = models.ForeignKey(to='Email', on_delete=models.CASCADE)
+    is_sent = models.BooleanField(default=False)
     is_read = models.BooleanField(default=False)
     is_forward = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)

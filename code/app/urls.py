@@ -7,5 +7,6 @@ urlpatterns = [
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
     path('register', views.register, name='register'),
-    path('compose', views.compose, name='compose')
+    path('compose', views.compose, name='compose'),
+    path('<str:folder>', views.inbox, name='inbox')
 ]

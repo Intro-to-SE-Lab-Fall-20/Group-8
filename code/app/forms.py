@@ -126,6 +126,7 @@ class ComposeForm(forms.Form):
                 Recipient.objects.create(
                     user=recipient_user,
                     email=email,
+                    is_sent=not self.cleaned_data['is_draft'],
                     is_forward=self.cleaned_data['is_forward']
                 )
             )

@@ -45,25 +45,25 @@
                           </h6>
 
                           <li class="nav-item">
-                            <a class="nav-link active" href="#">
+                            <a class="nav-link {% if folder == 'inbox' %}active{% endif %}" href="/">
                               <span data-feather="inbox"></span>
-                              Inbox <span class="sr-only">(current)</span>
+                              Inbox
                             </a>
                           </li>
                           <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link {% if folder == 'drafts' %}active{% endif %}" href="/drafts">
                               <span data-feather="drafts"></span>
                               Drafts
                             </a>
                           </li>
                           <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link {% if folder == 'outbox' %}active{% endif %}" href="/outbox">
                               <span data-feather="starred"></span>
-                              Starred
+                              Outbox
                             </a>
                           </li>
                           <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link {% if folder == 'archive' %}active{% endif %}" href="/archive">
                               <span data-feather="archived"></span>
                               Archived
                             </a>
