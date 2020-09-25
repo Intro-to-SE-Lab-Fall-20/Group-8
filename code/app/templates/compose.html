@@ -10,6 +10,18 @@
     Simple Email: Compose
 {% endblock title %}
 
+{% block javascript %}
+    {{ block.super }}
+    <script src="https://cdn.tiny.cloud/1/atcv4hj8bhdb3vq7uxn51n7l6fj8qom8div5jxfemgp9h2dm/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+      tinymce.init({
+        selector: '#compose_body',
+          toolbar: 'undo redo | fontselect| bold italic | alignleft aligncenter alignright alignjustify | ' +
+              'bullist numlist outdent indent | link image | print preview media fullpage | '
+      });
+    </script>
+{% endblock javascript %}
+
 {% block header %}
     <h1 class="h2">Compose</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
@@ -27,16 +39,23 @@
         <form id="compose-form" action="/compose" method="post">
             {% csrf_token %}
             {{ form.sender.label }}
+            <br>
             {{ form.sender}}
             <br>
+            <br>
             {{ form.recipients.label }}
+            <br>
             {{ form.recipients }}
             <br>
+            <br>
             {{ form.subject.label }}
+            <br>
             {{ form.subject }}
             <br>
-            {{ form.body.label }}
-            {{ form.body }}
+            <br>
+            <textarea id="compose_body" name="{{ form.body.html_name }}"
+            rows="30" cols="33">
+            </textarea>
 
         </form>
     </div>
