@@ -7,46 +7,63 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
 from .forms import UserRegistrationForm, ComposeForm
-from .models import Recipient
+from .models import Recipient, Sender
 
 
 @login_required
 @require_http_methods(['GET', 'POST'])
-def inbox(request, folder=None):
+def outbox(request):
+    """
+    Serves the user's outbox, or sent messages.
+    """
+
+    # get all of the emails that the user has sent
+    emails = []
+    senders = Sender.objects.filter(user=request.user)
+    for sender in senders:
+        if sender.is_draft:
+            continue    # skip this email since it hasn't been sent yet (still a draft)
+
+        email = sender.email
+        emails.append({
+            'uid': email.uid,
+            'subject': email.subject,
+            'from': email.sender_email.all()[0].user.email,
+            'to': ', '.join([recipient.user.email for recipient in email.recipient_set.all()]),
+            'body': email.body
+        })
+
+    return render(request, 'inbox.html', {
+        'folder': 'outbox',
+        'emails': emails
+    })
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def inbox(request):
     """
     Home page of Simple Email. Serves the user's inbox.
     """
 
+    # get all emails received by the user that have been sent
     emails = []
+    recipients = Recipient.objects.filter(user=request.user)
+    for recipient in recipients:
+        if not recipient.is_sent:
+            continue    # skip this email since it hasn't been sent yet (still a draft)
 
-    if folder == 'archive':
-        pass
-
-    elif folder == 'drafts':
-        pass
-
-    elif folder == 'outbox':
-        pass
-
-    else:
-        # must be the inbox, just display all received emails
-        folder = 'inbox'
-        recipients = Recipient.objects.filter(user=request.user)
-        for recipient in recipients:
-            if not recipient.is_sent:
-                continue    # skip this email since it hasn't been sent yet (still a draft)
-
-            email = recipient.email
-            emails.append({
-                'uid': email.uid,
-                'subject': email.subject,
-                'from': email.sender_email.all()[0].user.email,
-                'to': ', '.join([recipient.user.email for recipient in email.recipient_set.all()]),
-                'body': email.body
-            })
+        email = recipient.email
+        emails.append({
+            'uid': email.uid,
+            'subject': email.subject,
+            'from': email.sender_email.all()[0].user.email,
+            'to': ', '.join([recipient.user.email for recipient in email.recipient_set.all()]),
+            'body': email.body
+        })
 
     return render(request, 'inbox.html', {
-        'folder': folder,
+        'folder': 'inbox',
         'emails': emails
     })
 
