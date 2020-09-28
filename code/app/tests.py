@@ -336,7 +336,8 @@ def create_email(subject, content, sender, recipients, is_draft, is_forward):
 
 class TestInbox(TestCase):
     """
-    Tests the main inbox functionality of the website.
+    Tests the main inbox functionality of the website, along with
+    other folders like outbox.
     """
 
     def setUp(self):
@@ -344,19 +345,19 @@ class TestInbox(TestCase):
         Sets up some prerequisites before each test.
         """
 
-        # create dummy user
+        # create dummy user to login with
         self.credentials = {
             'username': 'test_user',
             'password': 'test_password'
         }
-        self.test_user = CustomUser.objects.create_user(**self.credentials)
+        self.test_user_one = CustomUser.objects.create_user(**self.credentials)
 
         # create test client and log in the user
         self.client = Client()
         self.client.login(**self.credentials)
 
-        # create a test sender user
-        self.sender = CustomUser.objects.create_user(
+        # create a secondary test user
+        self.test_user_two = CustomUser.objects.create_user(
             username="recipient_one",
             password="recipient_one",
             email="recipient_one@email.com"
@@ -371,26 +372,45 @@ class TestInbox(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_load_outbox(self):
+        """
+        Tests that the outbox view page loads.
+        """
+
+        response = self.client.get('/outbox')
+
+        self.assertEqual(response.status_code, 200)
+
     def test_inbox_received_emails(self):
         """
         Tests that the inbox view correctly displays emails received by a user.
         """
 
-        # create some test emails
+        # create some test emails that should show up
         create_email(
             subject='Testing subject',
             content='Testing content',
-            sender=self.sender,
-            recipients=[self.test_user],
+            sender=self.test_user_two,
+            recipients=[self.test_user_one],
             is_draft=False,
             is_forward=False
         )
         create_email(
             subject='Another subject',
             content='Even more content',
-            sender=self.sender,
-            recipients=[self.test_user],
+            sender=self.test_user_two,
+            recipients=[self.test_user_one],
             is_draft=False,
+            is_forward=False
+        )
+
+        # create an email that should NOT show up
+        create_email(
+            subject='Another subject',
+            content='Even more content',
+            sender=self.test_user_two,
+            recipients=[self.test_user_one],
+            is_draft=True,
             is_forward=False
         )
 
@@ -399,30 +419,40 @@ class TestInbox(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 2)
 
-    def test_inbox_not_received_emails(self):
+    def test_outbox_sent_emails(self):
         """
-        Tests that the inbox view does NOT display emails that have not been sent yet.
+        Tests that the inbox view correctly displays emails received by a user.
         """
 
-        # create a test email
+        # create some test emails that should show up
         create_email(
             subject='Testing subject',
             content='Testing content',
-            sender=self.sender,
-            recipients=[self.test_user],
-            is_draft=True,
+            sender=self.test_user_one,
+            recipients=[self.test_user_two],
+            is_draft=False,
             is_forward=False
         )
         create_email(
             subject='Another subject',
             content='Even more content',
-            sender=self.sender,
-            recipients=[self.test_user],
+            sender=self.test_user_one,
+            recipients=[self.test_user_two],
+            is_draft=False,
+            is_forward=False
+        )
+
+        # create a test email that should NOT show up
+        create_email(
+            subject='An invisible subject',
+            content='blah blah',
+            sender=self.test_user_one,
+            recipients=[self.test_user_two],
             is_draft=True,
             is_forward=False
         )
 
-        # check that the inbox renders no emails this time
-        response = self.client.get('/')
+        # check that the inbox renders this email correctly
+        response = self.client.get('/outbox')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['emails']), 0)
+        self.assertEqual(len(response.context['emails']), 2)
