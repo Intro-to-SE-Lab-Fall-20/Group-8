@@ -18,11 +18,17 @@
               <form class="w-100" action="/search/" method="get">
                 <input class="form-control form-control-dark" type="text" name="query" placeholder="Search" aria-label="Search">
               </form>
-              <ul class="navbar-nav px-3">
-                <li class="nav-item text-nowrap">
-                  <a class="nav-link" href="/logout">Sign out</a>
-                </li>
-              </ul>
+                <div class="dropdown px-2">
+                  <button id="dropdownMenuButton" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ user.username }}
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="/logout">Logout</a>
+                    {% if user.is_staff %}
+                      <a class="dropdown-item" href="/admin">Admin</a>
+                    {% endif %}
+                  </div>
+                </div>
             </nav>
         {% endblock navbar %}
 
@@ -68,39 +74,6 @@
                             <a class="nav-link {% if folder == 'archive' %}active{% endif %}" href="/archive">
                               <span data-feather="archived"></span>
                               Archived
-                            </a>
-                          </li>
-                        </ul>
-
-                        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                          <span>Recently Viewed</span>
-                          <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
-                            <span data-feather="plus-circle"></span>
-                          </a>
-                        </h6>
-                        <ul class="nav flex-column mb-2">
-                          <li class="nav-item">
-                            <a class="nav-link" href="#">
-                              <span data-feather="file-text"></span>
-                              Some email
-                            </a>
-                          </li>
-                          <li class="nav-item">
-                            <a class="nav-link" href="#">
-                              <span data-feather="file-text"></span>
-                              Anotha one
-                            </a>
-                          </li>
-                          <li class="nav-item">
-                            <a class="nav-link" href="#">
-                              <span data-feather="file-text"></span>
-                              TOP SECRET
-                            </a>
-                          </li>
-                          <li class="nav-item">
-                            <a class="nav-link" href="#">
-                              <span data-feather="file-text"></span>
-                              Year-end sale
                             </a>
                           </li>
                         </ul>

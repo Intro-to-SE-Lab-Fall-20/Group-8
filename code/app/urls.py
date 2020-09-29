@@ -7,6 +7,9 @@ urlpatterns = [
     path('', views.inbox, name='inbox'),
     path('outbox', views.outbox, name='outbox'),
 
+    # view email
+    path('view/<str:email_uid>', views.view_email, name='view_email'),
+
     # compose
     path('compose', views.compose, name='compose'),
 

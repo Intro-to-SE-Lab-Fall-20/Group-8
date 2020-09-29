@@ -7,7 +7,33 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
 from .forms import UserRegistrationForm, ComposeForm
-from .models import Recipient, Sender
+from .models import Recipient, Sender, Email
+
+
+@login_required
+@require_http_methods(['GET'])
+def view_email(request, email_uid):
+    """
+    Handles serving individual email pages.
+    """
+
+    # TODO: make it so that not just any user can view any email as long as they know the UID
+
+    # fetch the requested email from the DB
+    email = Email.objects.get(uid=email_uid)
+
+    # get respective sender
+    sender = email.sender_email.get().user.email
+
+    # get respective recipients
+    recipients = ', '.join([recipient.user.email for recipient in email.recipient_set.all()])
+
+    return render(request, 'view_email.html', {
+        'user': request.user,
+        'email': email,
+        'from': sender,
+        'to': recipients,
+    })
 
 
 @login_required
@@ -34,6 +60,7 @@ def outbox(request):
         })
 
     return render(request, 'inbox.html', {
+        'user': request.user,
         'folder': 'outbox',
         'emails': emails
     })
@@ -63,13 +90,14 @@ def inbox(request):
         })
 
     return render(request, 'inbox.html', {
+        'user': request.user,
         'folder': 'inbox',
         'emails': emails
     })
 
 
 @login_required
-@require_http_methods(['GET', 'POST'])
+@require_http_methods(['GET'])
 def search(request):
     """
     Handles searching for emails.
@@ -135,7 +163,10 @@ def search(request):
         }
 
     # render and return any results
-    return render(request, 'search.html', {'emails': emails})
+    return render(request, 'search.html', {
+        'user': request.user,
+        'emails': emails
+    })
 
 
 @login_required
@@ -144,6 +175,8 @@ def compose(request):
     """
     Serves the compose page. Creates emails when users finish composing.
     """
+
+    # TODO: make it so that not just any user can create an email as any user they want
 
     if request.method == 'POST':
         form = ComposeForm(request.POST)
@@ -170,12 +203,18 @@ def compose(request):
                 messages.error(request, data[0])
 
     else:
-        form = ComposeForm()
+        form = ComposeForm(initial={
+            'sender': request.user.email
+        })
 
-    return render(request, 'compose.html', {'form': form})
+    return render(request, 'compose.html', {
+        'user': request.user,
+        'form': form
+    })
 
 
 @login_required
+@require_http_methods(['GET'])
 def logout(request):
     """
     Logout view for Simple Email.
