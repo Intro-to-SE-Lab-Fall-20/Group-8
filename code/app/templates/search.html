@@ -17,7 +17,7 @@
               <th>From</th>
               <th>To</th>
             </tr>
-          {% for email in emails %}
+          {% for uid, email in emails.items %}
             <tr>
               <td><a href="/">{{ email.subject }}</a></td>
               <td>{{ email.from }}</td>

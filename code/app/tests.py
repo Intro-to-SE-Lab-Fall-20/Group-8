@@ -561,7 +561,7 @@ class TestSearch(TestCase):
         # check that specific email was returned
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 1)
-        self.assertEqual(response.context['emails'][0]['uid'], self.email_one.uid)
+        self.assertIsNotNone(response.context['emails'].get(self.email_one.uid))
 
         # submit a more vague query
         response = self.client.get('/search/', {'query': 'subject'})
@@ -588,7 +588,7 @@ class TestSearch(TestCase):
         # check results; should only return emails received by said user
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 1)
-        self.assertEqual(response.context['emails'][0]['uid'], self.email_three.uid)
+        self.assertIsNotNone(response.context['emails'].get(self.email_three.uid))
 
         # submit query with recipient user
         response = self.client.get('/search/', {'query': self.test_user_two.email})
@@ -596,7 +596,6 @@ class TestSearch(TestCase):
         # check results; should only return two emails
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 2)
-
 
     def test_search_by_body(self):
         """
@@ -609,7 +608,7 @@ class TestSearch(TestCase):
         # check results
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 1)
-        self.assertEqual(response.context['emails'][0]['uid'], self.email_two.uid)
+        self.assertIsNotNone(response.context['emails'].get(self.email_two.uid))
 
         # submit a more vague query
         response = self.client.get('/search/', {'query': 'content'})
@@ -617,3 +616,24 @@ class TestSearch(TestCase):
         # check that all matching results were returned
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 3)
+
+    def test_results_format(self):
+        """
+        Tests that the search results return in the expected format.
+        """
+
+        # submit query with recipient user
+        response = self.client.get('/search/', {'query': 'two'})
+
+        # check that there are no duplicates
+        self.assertEqual(len(response.context['emails']), 2)
+
+        # check that a received email is formatted correctly
+        email_two = response.context['emails'].get(self.email_two.uid)
+        self.assertEqual(email_two['from'], self.test_user_two.email)
+        self.assertEqual(email_two['to'], self.test_user_one.email)
+
+        # check that a sent email is formatted correctly
+        email_one = response.context['emails'].get(self.email_one.uid)
+        self.assertEqual(email_one['from'], self.test_user_one.email)
+        self.assertEqual(email_one['to'], self.test_user_two.email)
