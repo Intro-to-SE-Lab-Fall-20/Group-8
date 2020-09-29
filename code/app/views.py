@@ -70,6 +70,75 @@ def inbox(request):
 
 @login_required
 @require_http_methods(['GET', 'POST'])
+def search(request):
+    """
+    Handles searching for emails.
+    """
+
+    # get query from GET data
+    query = request.GET['query']
+
+    # check if the user has given a valid query
+    if not query:
+        messages.error(request, "Invalid search query!")
+        return redirect('/')
+
+    # setup
+    emails = []
+    sender_results = Sender.objects.none()
+    recipient_results = Recipient.objects.none()
+
+    # query DB for matching sent emails
+    senders = Sender.objects.filter(user=request.user)
+    if query == request.user.email:
+        # if the user's query is for their own email, add sent emails
+        sender_results = sender_results | senders
+    sender_results = sender_results | senders.filter(email__body__contains=query)
+    sender_results = sender_results | senders.filter(email__subject__contains=query)
+
+    # find any sent emails whose recipients match the query
+    for sender in senders:
+        recipient_results = recipient_results | sender.email.recipient_set.filter(user__email__contains=query)
+
+    # query DB for matching recipients
+    recipients = Recipient.objects.filter(user=request.user)
+    if query == request.user.email:
+        # if the user's query is for their own email, add sent emails
+        recipient_results = recipient_results | recipients
+    recipient_results = recipient_results | Recipient.objects.filter(user=request.user, email__body__contains=query)
+    recipient_results = recipient_results | Recipient.objects.filter(user=request.user, email__subject__contains=query)
+
+    # find any sent emails whose recipients match the query
+    for recipient in recipient_results:
+        test = recipient.email.sender_email.all().filter(user__email__contains=query)
+        sender_results = sender_results | recipient.email.sender_email.all().filter(user__email__contains=query)
+
+    # add together matching sender results
+    for sender in sender_results:
+        emails.append({
+            'uid': sender.email.uid,
+            'subject': sender.email.subject,
+            'body': sender.email.body,
+            'from': sender.user.email,
+            'to': sender.email.recipient_set.all()
+        })
+
+    # add together matching recipient results
+    for recipient in recipient_results:
+        emails.append({
+            'uid': recipient.email.uid,
+            'subject': recipient.email.subject,
+            'body': recipient.email.body,
+            'from': recipient.email.sender_email.get().user.email,
+            'to': request.user.email
+        })
+
+    # render and return any results
+    return render(request, 'search.html', {'emails': emails})
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
 def compose(request):
     """
     Serves the compose page. Creates emails when users finish composing.

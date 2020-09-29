@@ -1,5 +1,5 @@
 """
-Main file containing tests for unit tests and continuous integration.
+Main file containing tests for unit testing and continuous integration.
 https://docs.djangoproject.com/en/3.1/topics/testing/tools/
 """
 
@@ -7,6 +7,41 @@ from django.test import TestCase, Client
 from django.contrib import auth
 
 from .models import CustomUser, Email, Sender, Recipient
+
+
+def create_email(subject, content, sender, recipients, is_draft, is_forward):
+    """
+    Helper function for setting up the DB for testing.
+    Creates an Email instance along with respective Sender and Recipient relations.
+    """
+
+    # create email object
+    email = Email.objects.create(
+        body=content,
+        subject=subject
+    )
+
+    # create sender object
+    sender_relation = Sender.objects.create(
+        user=sender,
+        email=email,
+        is_draft=is_draft,
+        is_forward=is_forward
+    )
+
+    # create recipients objects
+    recipient_relations = []
+    for recipient in recipients:
+        recipient_relations.append(
+            Recipient.objects.create(
+                user=recipient,
+                email=email,
+                is_sent=not is_draft,
+                is_forward=is_forward
+            )
+        )
+
+    return email, sender_relation, recipient_relations
 
 
 class TestAuth(TestCase):
@@ -299,41 +334,6 @@ class TestCompose(TestCase):
         self.assertEqual(Recipient.objects.all().count(), 0)
 
 
-def create_email(subject, content, sender, recipients, is_draft, is_forward):
-    """
-    Helper function for setting up the DB for testing.
-    Creates an Email instance along with respective Sender and Recipient relations.
-    """
-
-    # create email object
-    email = Email.objects.create(
-        body=content,
-        subject=subject
-    )
-
-    # create sender object
-    sender_relation = Sender.objects.create(
-        user=sender,
-        email=email,
-        is_draft=is_draft,
-        is_forward=is_forward
-    )
-
-    # create recipients objects
-    recipient_relations = []
-    for recipient in recipients:
-        recipient_relations.append(
-            Recipient.objects.create(
-                user=recipient,
-                email=email,
-                is_sent=not is_draft,
-                is_forward=is_forward
-            )
-        )
-
-    return email, sender_relation, recipient_relations
-
-
 class TestInbox(TestCase):
     """
     Tests the main inbox functionality of the website, along with
@@ -456,3 +456,164 @@ class TestInbox(TestCase):
         response = self.client.get('/outbox')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 2)
+
+
+class TestSearch(TestCase):
+    """
+    Tests the website's search functionality.
+    """
+
+    def setUp(self):
+        """
+        Sets up some test users and emails for querying later.
+        """
+
+        # create dummy user to login with
+        self.credentials = {
+            'username': 'user_one',
+            'password': 'user_one'
+        }
+        self.test_user_one = CustomUser.objects.create_user(
+            **self.credentials,
+            email="user_one@email.com"
+        )
+
+        # create test client and log in the user
+        self.client = Client()
+        self.client.login(**self.credentials)
+
+        # create some additional test users
+        self.test_user_two = CustomUser.objects.create_user(
+            username="user_two",
+            password="user_two",
+            email="user_two@email.com"
+        )
+        self.test_user_three = CustomUser.objects.create_user(
+            username="user_three",
+            password="user_three",
+            email="user_three@email.com"
+        )
+
+        # create a test email sent by user one to user two
+        self.email_one, self.sender_one, self.recipient_one = create_email(
+            subject='subject email sent by user one to user two',
+            content='content of email one with something in the body',
+            sender=self.test_user_one,
+            recipients=[self.test_user_two],
+            is_draft=False,
+            is_forward=False
+        )
+
+        # create a test email sent by user two to user one
+        self.email_two, self.sender_two, self.recipient_two = create_email(
+            subject='subject email sent by user two to user one',
+            content='content of email one with weird in the body',
+            sender=self.test_user_two,
+            recipients=[self.test_user_one],
+            is_draft=False,
+            is_forward=False
+        )
+
+        # create a test email sent by user one to user three
+        self.email_three, self.sender_three, self.recipient_three = create_email(
+            subject='subject email sent by user one to user three',
+            content='content of email three with a ridiculous word in it',
+            sender=self.test_user_one,
+            recipients=[self.test_user_three],
+            is_draft=False,
+            is_forward=False
+        )
+
+        # create a test email sent by user two to user three
+        self.email_four, self.sender_four, self.recipient_four = create_email(
+            subject='subject email from user two to user three',
+            content='content of email four with an absolutely spectacular phrase in it',
+            sender=self.test_user_two,
+            recipients=[self.test_user_three],
+            is_draft=False,
+            is_forward=False
+        )
+
+    def test_empty_results(self):
+        """
+        Tests if the search view correctly renders empty.
+        """
+
+        # submit query
+        response = self.client.get(
+            '/search/',
+            {'query': 'something ridiculously specific that could never exist'},
+            follow=True
+        )
+
+        # check results
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 0)
+
+    def test_search_by_subject(self):
+        """
+        Tests searching a user's emails by email subject.
+        """
+
+        # submit a specific query
+        response = self.client.get('/search/', {'query': self.email_one.subject})
+
+        # check that specific email was returned
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 1)
+        self.assertEqual(response.context['emails'][0]['uid'], self.email_one.uid)
+
+        # submit a more vague query
+        response = self.client.get('/search/', {'query': 'subject'})
+
+        # check that all matching results were returned
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 3)
+
+    def test_search_by_user(self):
+        """
+        Tests searching for emails by a user's email.
+        """
+
+        # submit query with own email
+        response = self.client.get('/search/', {'query': self.test_user_one.email})
+
+        # check results; should return everything sent AND received by user
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 3)
+
+        # submit query with another user's email
+        response = self.client.get('/search/', {'query': self.test_user_three.email})
+
+        # check results; should only return emails received by said user
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 1)
+        self.assertEqual(response.context['emails'][0]['uid'], self.email_three.uid)
+
+        # submit query with recipient user
+        response = self.client.get('/search/', {'query': self.test_user_two.email})
+
+        # check results; should only return two emails
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 2)
+
+
+    def test_search_by_body(self):
+        """
+        Tests searching for emails by body contents.
+        """
+
+        # submit a specific query
+        response = self.client.get('/search/', {'query': self.email_two.body})
+
+        # check results
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 1)
+        self.assertEqual(response.context['emails'][0]['uid'], self.email_two.uid)
+
+        # submit a more vague query
+        response = self.client.get('/search/', {'query': 'content'})
+
+        # check that all matching results were returned
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['emails']), 3)
