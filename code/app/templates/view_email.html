@@ -1,0 +1,60 @@
+{% extends "nav.html" %}
+{% load static %}
+
+{% block css %}
+    {{ block.super }}
+    <link href="{% static 'css/compose.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block title %}
+    Simple Email: Compose
+{% endblock title %}
+
+{% block javascript %}
+    {{ block.super }}
+
+    {# TinyMCE Compose Text Editor #}
+    <script src="https://cdn.tiny.cloud/1/atcv4hj8bhdb3vq7uxn51n7l6fj8qom8div5jxfemgp9h2dm/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+      tinymce.init({
+        selector: '#compose_body',
+          toolbar: 'undo redo | fontselect| bold italic | alignleft aligncenter alignright alignjustify | ' +
+              'bullist numlist outdent indent | link image | print preview media fullpage | '
+      });
+    </script>
+
+    {# Delete Warning Modal #}
+    <script>
+        function display_modal(event) {
+            alertify.confirm(
+                'Confirm Discard',
+                'Are you sure you want to discard this message?',
+                function () {
+                    window.location.replace('/')
+                },
+                function () {}
+            )
+        }
+    </script>
+
+{% endblock javascript %}
+
+{% block header %}
+    <h1 class="h2">{{ email.subject }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Archive</button>
+            <button type="submit" form="compose-form" class="btn btn-sm btn-outline-primary">Forward</button>
+        </div>
+    </div>
+{% endblock header %}
+
+{% block view %}
+    <div>
+        <p>To: {{ to }}</p>
+        <p>From: {{ from }}</p>
+        <br/>
+        {{ email.body|safe }}
+    </div>
+
+{% endblock view %}

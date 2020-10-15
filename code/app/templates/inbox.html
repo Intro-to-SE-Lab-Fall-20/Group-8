@@ -1,11 +1,19 @@
 {% extends "nav.html" %}
 
 {% block title %}
-    Simple Email: Inbox
+    {% if folder == 'inbox' %}
+        Simple Email: Inbox
+    {% elif folder == 'outbox' %}
+        Simple Email: Outbox
+    {% endif %}
 {% endblock title %}
 
 {% block header %}
-    <h1 class="h2">Inbox</h1>
+    {% if folder == 'inbox' %}
+        <h1 class="h2">Inbox</h1>
+    {% elif folder == 'outbox' %}
+        <h1 class="h2">Outbox</h1>
+    {% endif %}
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group mr-2">
             <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
@@ -29,7 +37,7 @@
             </tr>
           {% for email in emails %}
             <tr>
-              <td><a href="/">{{ email.subject }}</a></td>
+              <td><a href="/view/{{ email.uid }}">{{ email.subject }}</a></td>
               <td>{{ email.from }}</td>
               <td>{{ email.to }}</td>
             </tr>
