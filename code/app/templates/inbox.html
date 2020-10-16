@@ -9,17 +9,19 @@
 {% endblock title %}
 
 {% block header %}
+
     {% if folder == 'inbox' %}
-        <h1 class="h2">Inbox</h1>
+        <h1 class="h2 text-color">Inbox</h1>
     {% elif folder == 'outbox' %}
-        <h1 class="h2">Outbox</h1>
+        <h1 class="h2 text-color">Outbox</h1>
     {% endif %}
+
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group mr-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-color">Share</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-color">Export</button>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle btn-color">
             <span data-feather="calendar"></span>
             This week
         </button>
@@ -28,7 +30,7 @@
 
 {% block view %}
     <div class="table-responsive">
-        <table class="table table-striped table-sm">
+        <table class="table table-striped table-sm text-color">
           <tbody>
             <tr>
               <th>Subject</th>

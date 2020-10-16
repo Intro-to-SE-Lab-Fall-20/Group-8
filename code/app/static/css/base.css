@@ -11,3 +11,17 @@
     background-color:#EF755E;
     border-color:#25CDC4
 }
+
+
+.text-color{
+    color: #FFFFFF;
+
+}
+
+.dark-color{
+    color: #000000;
+}
+
+.dark-fade{
+    background-color: rgba(52, 58, 64, .75);
+}
