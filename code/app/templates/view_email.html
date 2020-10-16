@@ -13,11 +13,11 @@
 
 
 {% block header %}
-    <h1 class="h2 text-color">{{ email.subject }}</h1>
+    <h1 class="h2 text-color">{% if sender.is_forward %}FWD: {% endif %}{{ email.subject }}</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group mr-2">
             <button type="button" class="btn btn-sm btn-outline-secondary">Archive</button>
-            <button type="submit" form="compose-form" class="btn btn-sm btn-outline-primary">Forward</button>
+            <a href="/forward/{{ email.uid }}" role="button" class="btn btn-sm btn-outline-primary">Forward</a>
         </div>
     </div>
 {% endblock header %}
@@ -25,7 +25,7 @@
 {% block view %}
     <div class="text-color">
         <p>To: {{ to }}</p>
-        <p>From: {{ from }}</p>
+        <p>From: {{ sender.user.email }}</p>
         <br/>
         {{ email.body|safe }}
     </div>

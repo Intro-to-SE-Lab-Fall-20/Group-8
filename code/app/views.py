@@ -23,7 +23,7 @@ def view_email(request, email_uid):
     email = Email.objects.get(uid=email_uid)
 
     # get respective sender
-    sender = email.sender_email.get().user.email
+    sender = email.sender_email.get()
 
     # get respective recipients
     recipients = ', '.join([recipient.user.email for recipient in email.recipient_set.all()])
@@ -31,7 +31,7 @@ def view_email(request, email_uid):
     return render(request, 'view_email.html', {
         'user': request.user,
         'email': email,
-        'from': sender,
+        'sender': sender,
         'to': recipients,
     })
 
@@ -210,6 +210,58 @@ def compose(request):
     return render(request, 'compose.html', {
         'user': request.user,
         'form': form
+    })
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def forward(request, email_uid=None):
+    """
+    Serves the forward page. Creates emails when users finish composing.
+    """
+
+    # TODO: make it so that not just any user can create an email as any user they want
+    # TODO: make it so that not just any user can forward any email they want, regardless of permission
+
+    if request.method == 'POST':
+        form = ComposeForm(request.POST)
+        if form.is_valid():
+            # create email instance and respective relations
+            form.create_email_and_relations()
+
+            # notify user and redirect to inbox
+            messages.success(request, "Message sent!")
+            return redirect('/')
+
+        else:
+            # compose is bad, notify user
+            for error, data in form.errors.items():
+                if error == 'subject':
+                    messages.error(request, 'Invalid subject: subject cannot be empty!')
+                    continue
+
+                elif error == '__all__':
+                    if 'recipient' in data[0]:
+                        messages.error(request, 'Invalid recipients: one of your recipients was not found!')
+                        continue
+
+                messages.error(request, data[0])
+
+    else:
+        email = Email.objects.get(uid=email_uid) if email_uid is not None else None
+        if email is not None:
+            form = ComposeForm(initial={
+                'sender': request.user.email,
+                'body': email.body,
+                'is_forward': True,
+            })
+        else:
+            messages.error(request, f"Email for UID {email_uid} not found!")
+            return redirect('/')
+
+    return render(request, 'forward.html', {
+        'user': request.user,
+        'form': form,
     })
 
 
