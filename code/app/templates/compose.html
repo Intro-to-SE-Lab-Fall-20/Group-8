@@ -3,7 +3,7 @@
 
 {% block css %}
     {{ block.super }}
-    <link href="{% static 'css/compose.css' %}" rel="stylesheet">
+    <link href="{% static '/css/compose.css' %}" rel="stylesheet">
 {% endblock css %}
 
 {% block title %}
@@ -18,8 +18,10 @@
     <script>
       tinymce.init({
         selector: '#compose_body',
-          toolbar: 'undo redo | fontselect| bold italic | alignleft aligncenter alignright alignjustify | ' +
-              'bullist numlist outdent indent | link image | print preview media fullpage | '
+          toolbar: 'undo redo | fontselect| fontsizeselect | bold italic | alignleft aligncenter alignright alignjustify | ' +
+              'bullist numlist outdent indent | link image | print preview media fullpage | ',
+          skin: 'oxide-dark',
+          browser_spellcheck: true
       });
     </script>
 
@@ -57,7 +59,7 @@
             {% csrf_token %}
             {{ form.sender.label }}
             <br>
-            {{ form.sender}}
+            {{ form.sender }}
             <br>
             <br>
             {{ form.recipients.label }}
@@ -71,7 +73,7 @@
             <br>
             <br>
             <textarea id="compose_body" name="{{ form.body.html_name }}"
-            rows="30" cols="33">
+            rows="30" cols="33" style = 'background-color: black'>
             </textarea>
 
         </form>

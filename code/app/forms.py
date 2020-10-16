@@ -63,6 +63,7 @@ class ComposeForm(forms.Form):
         # setup some state vars
         self.sender_user = None
         self.recipient_users = []
+        self.fields['sender'].widget.attrs['readonly'] = True
 
     def clean(self):
         """

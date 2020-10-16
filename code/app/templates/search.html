@@ -19,7 +19,7 @@
             </tr>
           {% for uid, email in emails.items %}
             <tr>
-              <td><a href="/">{{ email.subject }}</a></td>
+              <td><a href="/view/{{ email.uid }}">{{ email.subject }}</a></td>
               <td>{{ email.from }}</td>
               <td>{{ email.to }}</td>
             </tr>
