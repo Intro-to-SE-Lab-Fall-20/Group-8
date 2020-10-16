@@ -1,16 +1,17 @@
 {% extends "nav.html" %}
 
 {% block title %}
+    {{ block.super }}
     Simple Email: Search
 {% endblock title %}
 
 {% block header %}
-    <h1 class="h2">Search Results</h1>
+    <h1 class="h2 text-color">Search Results</h1>
 {% endblock header %}
 
 {% block view %}
     <div class="table-responsive">
-        <table class="table table-striped table-sm">
+        <table class="table table-striped table-sm text-color">
           <tbody>
             <tr>
               <th>Subject</th>
