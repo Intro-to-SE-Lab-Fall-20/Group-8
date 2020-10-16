@@ -54,8 +54,7 @@
 
 {% block view %}
     <div>
-
-        <form id="compose-form" action="/compose" method="post" class=" text-color ">
+        <form id="compose-form" action="/compose" method="post" class="text-color" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.sender.label }}
             <br>
@@ -71,6 +70,7 @@
             <br>
             {{ form.subject }}
             <br>
+            {{ form.file_field }}
             <br>
             <textarea id="compose_body" name="{{ form.body.html_name }}"
             rows="30" cols="33" style = 'background-color: black'>

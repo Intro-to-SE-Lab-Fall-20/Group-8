@@ -33,6 +33,7 @@ def view_email(request, email_uid):
         'email': email,
         'from': sender,
         'to': recipients,
+        'attachments': [attach for attach in email.attachment_set.all()]
     })
 
 
@@ -179,10 +180,10 @@ def compose(request):
     # TODO: make it so that not just any user can create an email as any user they want
 
     if request.method == 'POST':
-        form = ComposeForm(request.POST)
+        form = ComposeForm(request.POST, request.FILES)
         if form.is_valid():
             # create email instance and respective relations
-            form.create_email_and_relations()
+            form.create_email_and_relations(request.FILES)
 
             # notify user and redirect to inbox
             messages.success(request, "Message sent!")
