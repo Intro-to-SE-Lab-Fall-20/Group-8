@@ -135,6 +135,6 @@ STATICFILES_DIRS = (
 
 # Media Files (user uploaded files)
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'app', 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'app', 'media/')
 
 MEDIA_URL = '/media/'

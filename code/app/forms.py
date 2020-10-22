@@ -1,4 +1,4 @@
-from .models import CustomUser, Email, Sender, Recipient
+from .models import CustomUser, Email, Sender, Recipient, Attachment
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -56,6 +56,7 @@ class ComposeForm(forms.Form):
     body = forms.CharField(required=True, label='Body:')
     is_draft = forms.BooleanField(required=False, label='Draft:')
     is_forward = forms.BooleanField(required=False, label='Forward:')
+    file_field = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}), required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -96,7 +97,7 @@ class ComposeForm(forms.Form):
         # everything checks out
         return
 
-    def create_email_and_relations(self):
+    def create_email_and_relations(self, file_data=None):
         """
         This creates new instances of Email, Sender, and Recipient.
         Returns new instance of Email.
@@ -131,6 +132,17 @@ class ComposeForm(forms.Form):
                     is_forward=self.cleaned_data['is_forward']
                 )
             )
+
+        # create and save attachments
+        if file_data is not None:
+            for _, file in file_data.items():
+                # create new attachment
+                attach = Attachment.objects.create(
+                    email=email,
+                    type=Attachment.FILE,
+                    file=file,
+                    name=file.name
+                )
 
         # everything was created successfully
         return email

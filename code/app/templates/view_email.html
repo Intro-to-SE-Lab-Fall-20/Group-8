@@ -28,6 +28,14 @@
         <p>From: {{ sender.user.email }}</p>
         <br/>
         {{ email.body|safe }}
+
+        <!-- Attachments -->
+        {% for attach in attachments %}
+            <a href="/media/{{ attach.file.name }}" target="_blank" rel="noopener noreferrer">
+                Attachment: {{ attach.name }}
+            </a>
+        {% endfor %}
+
     </div>
 
 {% endblock view %}

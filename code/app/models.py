@@ -75,6 +75,7 @@ class Attachment(models.Model):
     ]
 
     uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    name = models.CharField(max_length=120, default="")
     email = models.ForeignKey(to='Email', on_delete=models.CASCADE)
     type = models.CharField(max_length=20, choices=ATTACH_CHOICES, default=FILE)
     file = models.FileField(upload_to='uploads/files/%Y/%m/%d/')
