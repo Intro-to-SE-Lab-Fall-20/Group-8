@@ -12,8 +12,10 @@ urlpatterns = [
     # view email
     path('view/<str:email_uid>', views.view_email, name='view_email'),
 
-    # compose
+    # compose and forward
     path('compose', views.compose, name='compose'),
+    path('forward', views.forward, name='forward'),
+    path('forward/<str:email_uid>', views.forward, name='forward'),
 
     # search
     path('search/', views.search, name='search'),
