@@ -6,7 +6,7 @@ https://docs.djangoproject.com/en/3.1/topics/testing/tools/
 from django.test import TestCase, Client
 from django.contrib import auth
 
-from .models import CustomUser, Email, Sender, Recipient
+from .models import CustomUser, Email, Sender, Recipient, Attachment
 
 
 def create_email(subject, content, sender, recipients, is_draft, is_forward):
@@ -332,6 +332,115 @@ class TestCompose(TestCase):
         self.assertEqual(Email.objects.all().count(), 0)
         self.assertEqual(Sender.objects.all().count(), 0)
         self.assertEqual(Recipient.objects.all().count(), 0)
+
+    def test_compose_with_attachment(self):
+        """
+        Tests compose with a single file uploaded.
+        """
+
+        # load test file
+        test_file = open('./app/test_data/test_file.txt', 'r')
+
+        # build some data form data
+        form_data = {
+            'subject': 'test attach upload',
+            'sender': f"{self.sender.email}",
+            'recipients': ''.join(f"{user.email}," for user in self.recipients),
+            'body': 'This is a valid body',
+            'is_draft': 'false',
+            'is_forward': 'false',
+            'file_field': test_file
+        }
+
+        # submit test data
+        response = self.client.post(
+            path='/compose',
+            data=form_data,
+            follow=True
+        )
+
+        # validate form was submitted successfully
+        self.assertContains(response, f'Message sent!')
+        self.assertRedirects(response, '/')
+
+        # check that the proper attachment was created in the DB
+        self.assertEqual(Attachment.objects.all().count(), 1)
+
+        # get attachment from DB and make sure it's what we uploaded
+        attachment = Attachment.objects.all()[0]
+        test_file.seek(0)
+        self.assertEqual(attachment.file.read().decode(), test_file.read())
+
+        # clean up
+        attachment.file.delete()
+
+    def test_forward(self):
+        """
+        Tests forward functionality for user's viewing emails in their inbox.
+        """
+
+        # create dummy email to forward
+        email, sender, recipients = create_email(
+            subject='Testing subject',
+            content='Testing content',
+            sender=self.sender,
+            recipients=self.recipients,
+            is_draft=False,
+            is_forward=False
+        )
+
+        # request forward page
+        response = self.client.get(
+            path=f'/view/{email.uid}'
+        )
+
+        # check the the compose form is populated correctly
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, email.body)
+        self.assertContains(response, self.sender.email)
+
+        # build up compose form with `is_forward` = True
+        form_data = {
+            'subject': 'test attach upload',
+            'sender': f"{self.sender.email}",
+            'recipients': ''.join(f"{user.email}," for user in self.recipients),
+            'body': 'this is a forward body',
+            'is_draft': 'false',
+            'is_forward': 'True'
+        }
+
+        # submit test data
+        response = self.client.post(
+            path='/compose',
+            data=form_data,
+            follow=True
+        )
+
+        # validate form was submitted successfully
+        self.assertContains(response, f'Message sent!')
+        self.assertRedirects(response, '/')
+
+        # grab Sender and Email objects from DB
+        email = Email.objects.get(subject=form_data['subject'])
+        sender = Sender.objects.get(user=self.sender, email=email)
+
+        # validate Sender
+        self.assertFalse(sender.is_draft)
+        self.assertTrue(sender.is_forward)
+        self.assertEqual(sender.email, email)
+
+        # validate Email
+        self.assertEqual(email.body, form_data['body'])
+        self.assertEqual(email.subject, form_data['subject'])
+
+        # validate Recipients
+        for recipient_user in self.recipients:
+            recipient = Recipient.objects.get(user=recipient_user, email=email)
+            self.assertEqual(recipient.email, email)
+            self.assertTrue(recipient.is_sent)
+            self.assertFalse(recipient.is_read)
+            self.assertTrue(recipient.is_forward)
+            self.assertFalse(recipient.is_archived)
 
 
 class TestInbox(TestCase):
