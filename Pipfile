@@ -9,6 +9,9 @@ verify_ssl = true
 psycopg2-binary = "*"
 Django = "*"
 pillow = "*"
+selenium = "*"
+docker = "*"
+docker-compose = "*"
 
 [requires]
 python_version = "3.8.5"

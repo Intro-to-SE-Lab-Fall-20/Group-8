@@ -12,3 +12,6 @@ __pycache__/
 
 # ignore user uploaded files
 code/app/media/*
+
+# log and temp files
+*.log
