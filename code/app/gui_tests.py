@@ -1,58 +1,19 @@
 """
 Main file containing tests for unit testing and continuous integration.
 https://docs.djangoproject.com/en/3.1/topics/testing/tools/
+https://www.selenium.dev/documentation/en/
 """
 
 from selenium import webdriver
-import docker
-import time
 
-
-from django.test import TestCase, Client
-from django.contrib import auth
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
-from .models import CustomUser, Email, Sender, Recipient, Attachment
-
-
-def create_email(subject, content, sender, recipients, is_draft, is_forward):
-    """
-    Helper function for setting up the DB for testing.
-    Creates an Email instance along with respective Sender and Recipient relations.
-    """
-
-    # create email object
-    email = Email.objects.create(
-        body=content,
-        subject=subject
-    )
-
-    # create sender object
-    sender_relation = Sender.objects.create(
-        user=sender,
-        email=email,
-        is_draft=is_draft,
-        is_forward=is_forward
-    )
-
-    # create recipients objects
-    recipient_relations = []
-    for recipient in recipients:
-        recipient_relations.append(
-            Recipient.objects.create(
-                user=recipient,
-                email=email,
-                is_sent=not is_draft,
-                is_forward=is_forward
-            )
-        )
-
-    return email, sender_relation, recipient_relations
+from .models import CustomUser
 
 
 class TestAuthGui(StaticLiveServerTestCase):
     """
-    A collection of GUI tests for the sites auth functionality.
+    A collection of GUI tests for testing auth functionality.
     """
 
     def setUp(self):
@@ -72,7 +33,7 @@ class TestAuthGui(StaticLiveServerTestCase):
 
     def test_login_success(self):
         """
-        Tests a successful login.
+        Tests a successful login attempt.
         """
 
         # load the login page
@@ -88,7 +49,7 @@ class TestAuthGui(StaticLiveServerTestCase):
         submit_btn.click()
         self.driver.implicitly_wait(3)
 
-        # verify we're redirect to the user's inbox
+        # verify we're redirected to the user's inbox
         assert "Inbox" in self.driver.title
 
         # verify success message is displayed
@@ -173,7 +134,7 @@ class TestAuthGui(StaticLiveServerTestCase):
         Tests a failed registration attempt.
         """
 
-        new_creds = {
+        test_creds = {
             'username': 'test_user',
             'password': 'new_password'
         }
@@ -184,11 +145,11 @@ class TestAuthGui(StaticLiveServerTestCase):
 
         # enter new valid username and password
         username_element = self.driver.find_element_by_name('username')
-        username_element.send_keys(new_creds['username'])
+        username_element.send_keys(test_creds['username'])
         password_element = self.driver.find_element_by_name('password')
-        password_element.send_keys(new_creds['password'])
+        password_element.send_keys(test_creds['password'])
         repassword_element = self.driver.find_element_by_name('re_password')
-        repassword_element.send_keys(new_creds['password'])
+        repassword_element.send_keys(test_creds['password'])
         submit_btn = self.driver.find_element_by_class_name('btn-block')
         submit_btn.click()
         self.driver.implicitly_wait(3)
