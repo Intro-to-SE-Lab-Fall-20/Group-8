@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
 from .forms import UserRegistrationForm, ComposeForm
-from .models import Recipient, Sender, Email
+from .models import Recipient, Sender, Email, CustomUser
 
 
 @login_required
@@ -332,18 +332,32 @@ def login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # if the user's info is legit, log them in
-            auth_login(request, user)
+            if user.failed_attempts >= 3:
+                messages.warning(request, "User account is locked")
 
-            # set session expiry if remember-me check box was not checked
-            if not remember:
-                request.session.set_expiry(0)
+            else:
+                # if the user's info is legit, log them in
+                auth_login(request, user)
 
-            # redirect to inbox
-            messages.success(request, f"Welcome back {request.user.username}!")
-            return redirect('inbox')
+                # set session expiry if remember-me check box was not checked
+                if not remember:
+                    request.session.set_expiry(0)
+
+                # redirect to inbox
+                messages.success(request, f"Welcome back {request.user.username}!")
+                return redirect('inbox')
 
         else:
+            try:
+                # gets username if user exists increments failed_attempts column and saves user
+                user = CustomUser.objects.get(username=username)
+                user.failed_attempts += 1
+                user.save()
+
+            except CustomUser.DoesNotExist:
+                # continues if no user with that username exists
+                pass
+
             # user's info is bad, notify them
             messages.warning(request, "Invalid username or password.")
 
