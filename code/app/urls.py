@@ -5,8 +5,11 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
+    # splash page
+    path('', views.splash, name='splash'),
+
     # folder views (inbox, outbox, etc.)
-    path('', views.inbox, name='inbox'),
+    path('inbox', views.inbox, name='inbox'),
     path('outbox', views.outbox, name='outbox'),
 
     # view email
@@ -21,7 +24,7 @@ urlpatterns = [
     path('search/', views.search, name='search'),
 
     # user auth
-    path('login', views.login, name='login'),
+    path('login', views.master_login, name='login'),
     path('logout', views.logout, name='logout'),
     path('register', views.register, name='register'),
 ]

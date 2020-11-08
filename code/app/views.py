@@ -316,10 +316,21 @@ def register(request):
     return render(request, 'register.html', {"form": form})
 
 
-@require_http_methods(["GET", "POST"])
-def login(request):
+@require_http_methods(["GET"])
+@login_required
+def splash(request):
     """
-    Login page for Simple Email.
+    Splash page for choosing which app to use.
+    """
+
+    return render(request, 'splash.html', {})
+
+
+@require_http_methods(["GET", "POST"])
+def master_login(request):
+    """
+    Login page for entire site. This servers as a "master" login page to grant access
+    to email and notes apps.
     If this is a GET request, user is loading the login page.
     If this is a POST request, user is trying to login.
     """
@@ -345,7 +356,7 @@ def login(request):
 
                 # redirect to inbox
                 messages.success(request, f"Welcome back {request.user.username}!")
-                return redirect('inbox')
+                return redirect('splash')
 
         else:
             try:
@@ -364,7 +375,7 @@ def login(request):
     else:
         # check if the user is already logged in
         if request.user.is_authenticated:
-            return redirect('inbox')
+            return redirect('splash')
 
     # serve page to user normally
     return render(request, 'login.html', {})
