@@ -10,7 +10,29 @@ from .forms import UserRegistrationForm, ComposeForm
 from .models import Recipient, Sender, Email, CustomUser
 
 
+def verify_email_auth(func, *args, **kwargs):
+    """
+    Decorator function to check if a user is logged in to the
+    Email client before granting access to a page.
+    """
+
+    def checker(*args, **kwargs):
+        request = args[0]   # should be first pos arg
+        if request is not None:
+            email_session = request.session.get('email_session', None)
+            if email_session:
+                # user is logged in, continue to view
+                return func(*args, **kwargs)
+            else:
+                # user is not logged in, warn them
+                messages.warning(request, "Please sign-in to continue.")
+
+        return redirect('/email_login')
+
+    return checker
+
 @login_required
+@verify_email_auth
 @require_http_methods(['GET'])
 def view_email(request, email_uid):
     """
@@ -38,6 +60,7 @@ def view_email(request, email_uid):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def outbox(request):
     """
@@ -68,6 +91,7 @@ def outbox(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def inbox(request):
     """
@@ -98,6 +122,7 @@ def inbox(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET'])
 def search(request):
     """
@@ -171,6 +196,7 @@ def search(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def compose(request):
     """
@@ -215,6 +241,7 @@ def compose(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def forward(request, email_uid=None):
     """
@@ -267,6 +294,19 @@ def forward(request, email_uid=None):
 
 
 @login_required
+@verify_email_auth
+@require_http_methods(['GET'])
+def email_logout(request):
+    """
+    Logs a user out of the Simple Email app.
+    """
+
+    request.session['email_session'] = False
+
+    return redirect("/")
+
+
+@login_required
 @require_http_methods(['GET'])
 def logout(request):
     """
@@ -276,6 +316,9 @@ def logout(request):
 
     messages.success(request, f"See ya later {request.user.username}!")
     auth_logout(request)
+
+    # clear any existing session data
+    request.session.flush()
 
     return redirect('/login')
 
@@ -298,7 +341,7 @@ def register(request):
 
             # redirect to homepage (inbox)
             messages.success(request, f"Welcome {request.user.username}!")
-            return redirect('inbox')
+            return redirect('/')
 
         else:
             # user info is bad, notify them
@@ -308,7 +351,7 @@ def register(request):
     else:
         # check if the user is already logged in
         if request.user.is_authenticated:
-            return redirect('inbox')
+            return redirect('/')
 
         # create new form for user to register with
         form = UserRegistrationForm()
@@ -324,6 +367,26 @@ def splash(request):
     """
 
     return render(request, 'splash.html', {})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def email_login(request):
+    """
+    Handles logging in users to access Simple Email app.
+    """
+
+    if request.method == 'POST':
+        # debug - auth user upon form submission
+        request.session["email_session"] = True
+        return redirect('/inbox')
+
+    else:
+        if request.session.get("email_session", None):
+            # redirect user to inbox if user is already signed into Email
+            return redirect('/inbox')
+
+    return render(request, 'email_login.html', {})
 
 
 @require_http_methods(["GET", "POST"])

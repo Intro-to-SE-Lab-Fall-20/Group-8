@@ -23,10 +23,14 @@ urlpatterns = [
     # search
     path('search/', views.search, name='search'),
 
-    # user auth
+    # master auth
     path('login', views.master_login, name='login'),
     path('logout', views.logout, name='logout'),
     path('register', views.register, name='register'),
+
+    # email auth
+    path('email_login', views.email_login, name='email_login'),
+    path('email_logout', views.email_logout, name='email_logout'),
 ]
 
 # media files
