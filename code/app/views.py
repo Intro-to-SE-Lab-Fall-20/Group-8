@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.hashers import get_hasher
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
@@ -378,8 +379,22 @@ def email_login(request):
 
     if request.method == 'POST':
         # debug - auth user upon form submission
-        request.session["email_session"] = True
-        return redirect('/inbox')
+        email = request.POST['email']
+        password = request.POST['password']
+
+        try:
+            user = CustomUser.objects.get(email=email)
+            hasher = get_hasher('default')
+            is_correct = hasher.verify(password, user.email_password)
+
+            if is_correct:
+                request.session["email_session"] = True
+                return redirect('/inbox')
+            else:
+                messages.warning(request, "Invalid email or password.")
+
+        except CustomUser.DoesNotExist:
+            messages.warning(request, "Invalid email or password.")
 
     else:
         if request.session.get("email_session", None):

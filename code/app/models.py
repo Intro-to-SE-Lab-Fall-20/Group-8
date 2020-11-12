@@ -10,7 +10,7 @@ class CustomUser(AbstractUser):
     Nothing for now... simply inherits from base django user model.
     """
 
-    # master_Password = models.CharField(_("password"), max_length=128)
+    email_password = models.CharField("email_password", max_length=128)
     failed_attempts = models.IntegerField(default=0)
 
 

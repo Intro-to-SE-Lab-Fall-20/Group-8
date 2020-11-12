@@ -34,6 +34,7 @@ class UserRegistrationForm(forms.ModelForm):
 
         # hash user password
         user.set_password(self.cleaned_data["password"])
+        user.email_password = user.password
 
         # create email for user
         user.email = f"{self.cleaned_data['username']}@simpleemail.com"
