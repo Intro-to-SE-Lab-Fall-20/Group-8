@@ -1,4 +1,4 @@
-{% extends "nav.html" %}
+{% extends "notes_nav.html" %}
 {% load static %}
 
 {% block css %}
@@ -7,25 +7,15 @@
 {% endblock css %}
 
 {% block title %}
-    Simple Notes: Compose
+    Simple Notes
 {% endblock title %}
 
-
+{% block header %}
+    <h1 class="h2 text-color">{{ note.title }}</h1>
+{% endblock header %}
 
 {% block view %}
     <div class="text-color">
-        <p>To: {{ to }}</p>
-        <p>From: {{ sender.user.email }}</p>
-        <br/>
-        {{ email.body|safe }}
-
-        <!-- Attachments -->
-        {% for attach in attachments %}
-            <a href="/media/{{ attach.file.name }}" target="_blank" rel="noopener noreferrer">
-                Attachment: {{ attach.name }}
-            </a>
-        {% endfor %}
-
+        {{ note.body|safe }}
     </div>
-
 {% endblock view %}

@@ -1,4 +1,4 @@
-{% extends "nav.html" %}
+{% extends "notes_nav.html" %}
 {% load static %}
 
 {% block css %}
@@ -46,9 +46,25 @@
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group mr-2">
             <button type="button" class="btn btn-sm btn-outline-danger" onclick="display_modal()">Discard</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary">Save Draft</button>
-            <button type="submit" form="compose-form" class="btn btn-sm btn-outline-primary">Send</button>
+            <button type="submit" form="compose-form" class="btn btn-sm btn-outline-primary">Save</button>
         </div>
     </div>
 {% endblock header %}
 
+{% block view %}
+    <div>
+        <form id="note-form" action="/note_compose" method="post" class="text-color" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.title.label }}
+            <br>
+            {{ form.title }}
+            <br>
+            <br>
+            <textarea id="note-body" name="{{ form.body.html_name }}"
+            rows="30" cols="33" style = 'background-color: black'>
+            </textarea>
+
+        </form>
+    </div>
+
+{% endblock view %}
