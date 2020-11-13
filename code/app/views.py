@@ -413,20 +413,36 @@ def email_login(request):
     """
 
     if request.method == 'POST':
-        # debug - auth user upon form submission
         email = request.POST['email']
         password = request.POST['password']
 
         try:
+            # try retrieving user object from db
             user = CustomUser.objects.get(email=email)
-            hasher = get_hasher('default')
-            is_correct = hasher.verify(password, user.email_password)
 
-            if is_correct:
-                request.session["email_session"] = True
-                return redirect('/inbox')
+            # check that the user isn't locked out
+            if user.failed_attempts >= 3:
+                messages.warning(request, "User account is locked")
+
             else:
-                messages.warning(request, "Invalid email or password.")
+                # verify that the user gave the correct password
+                hasher = get_hasher('default')
+                is_correct = hasher.verify(password, user.email_password)
+
+                if is_correct:
+                    # reset lockout attempts
+                    user.failed_attempts = 0
+                    user.save()
+
+                    # log the user in and redirect to inbox
+                    request.session["email_session"] = True
+                    return redirect('/inbox')
+
+                else:
+                    # increment the lockout attempts
+                    user.failed_attempts += 1
+                    user.save()
+                    messages.warning(request, "Invalid email or password.")
 
         except CustomUser.DoesNotExist:
             messages.warning(request, "Invalid email or password.")
@@ -456,32 +472,18 @@ def master_login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if user.failed_attempts >= 3:
-                messages.warning(request, "User account is locked")
+            # if the user's info is legit, log them in
+            auth_login(request, user)
 
-            else:
-                # if the user's info is legit, log them in
-                auth_login(request, user)
+            # set session expiry if remember-me check box was not checked
+            if not remember:
+                request.session.set_expiry(0)
 
-                # set session expiry if remember-me check box was not checked
-                if not remember:
-                    request.session.set_expiry(0)
-
-                # redirect to inbox
-                messages.success(request, f"Welcome back {request.user.username}!")
-                return redirect('splash')
+            # redirect to inbox
+            messages.success(request, f"Welcome back {request.user.username}!")
+            return redirect('splash')
 
         else:
-            try:
-                # gets username if user exists increments failed_attempts column and saves user
-                user = CustomUser.objects.get(username=username)
-                user.failed_attempts += 1
-                user.save()
-
-            except CustomUser.DoesNotExist:
-                # continues if no user with that username exists
-                pass
-
             # user's info is bad, notify them
             messages.warning(request, "Invalid username or password.")
 
