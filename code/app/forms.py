@@ -1,3 +1,5 @@
+from django.contrib.auth.hashers import get_hasher, make_password
+
 from .models import CustomUser, Email, Sender, Recipient, Attachment
 from django import forms
 from django.core.exceptions import ValidationError
@@ -44,6 +46,60 @@ class UserRegistrationForm(forms.ModelForm):
             user.save()
 
         return user
+
+
+class UserResetForm(forms.Form):
+    """
+    Form used for registering new users to Simple Email.
+    """
+
+    username = forms.CharField(max_length=128)
+    old_password = forms.CharField(max_length=128)
+    email_password = forms.CharField(max_length=128)
+    re_password = forms.CharField(max_length=128)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # validate passwords match
+        old_password = cleaned_data.get("old_password")
+        email_password = cleaned_data.get("email_password")
+        re_password = cleaned_data.get("re_password")
+        try:
+            user = CustomUser.objects.get(username=cleaned_data.get("username"))
+            hasher = get_hasher('default')
+            is_correct = hasher.verify(old_password, user.email_password)
+
+            if not is_correct:
+                raise ValidationError(
+                    "old password is not correct."
+                )
+
+            if old_password == re_password:
+                raise ValidationError(
+                    "new password can't be the same as old password."
+                )
+
+            if email_password != re_password:
+                raise ValidationError(
+                    "Passwords do not match."
+                )
+
+        except CustomUser.DoesNotExist:
+            raise ValidationError(
+                "user with that username does not exist."
+            )
+
+    def update_password(self):
+        """
+        Updates the user's password based on cleaned input.
+        """
+
+        user = CustomUser.objects.get(username=self.cleaned_data.get("username"))
+        if user is not None:
+            # change the user's password to be the new password
+            user.email_password = make_password(self.cleaned_data.get("email_password"))
+            user.save()
 
 
 class ComposeForm(forms.Form):

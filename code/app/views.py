@@ -7,7 +7,7 @@ from django.contrib.auth.hashers import get_hasher
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from .forms import UserRegistrationForm, ComposeForm
+from .forms import UserRegistrationForm, ComposeForm, UserResetForm
 from .models import Recipient, Sender, Email, CustomUser
 
 
@@ -358,6 +358,40 @@ def register(request):
         form = UserRegistrationForm()
 
     return render(request, 'register.html', {"form": form})
+
+
+@require_http_methods(["GET", "POST"])
+def reset_password(request):
+    """
+    Resets the password for the email of the user that is logged into the master user
+    """
+
+    if request.method == "POST":
+        # validate user input
+        form = UserResetForm(request.POST)
+        if form.is_valid():
+            # save form to create user
+            form.update_password()
+
+            # redirect to homepage (inbox)
+            messages.success(request, f" {request.user.username}'s Password was reset!")
+            return redirect('/inbox')
+
+        else:
+            # user info is bad, notify them
+            for error, data in form.errors.items():
+                messages.error(request, data[0])
+
+    else:
+        # check if the user is already logged in
+        if request.user.is_authenticated:
+            # return redirect('/')
+            pass
+
+        # create new form for user to register with
+        form = UserResetForm()
+
+    return render(request, 'reset_password.html', {"form": form, "user": request.user})
 
 
 @require_http_methods(["GET"])
