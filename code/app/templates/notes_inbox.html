@@ -1,0 +1,39 @@
+{% extends "nav.html" %}
+
+{% block title %}
+    {% if folder == 'inbox' %}
+        Simple Notes: Inbox
+    {% endif %}
+{% endblock title %}
+
+{% block header %}
+
+    {% if folder == 'inbox' %}
+        <h1 class="h2 text-color">Inbox</h1>
+    {% elif folder == 'outbox' %}
+        <h1 class="h2 text-color">Outbox</h1>
+    {% endif %}
+
+{% endblock header %}
+
+{% block view %}
+    <div class="table-responsive">
+        <table class="table table-striped table-sm text-color">
+          <tbody>
+            <tr>
+              <th>Subject</th>
+              <th>From</th>
+              <th>To</th>
+            </tr>
+          {% for email in emails %}
+            <tr>
+              <td><a href="/view/{{ email.uid }}">{{ email.subject }}</a></td>
+              <td>{{ email.from }}</td>
+              <td>{{ email.to }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+    </div>
+
+{% endblock view %}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}">
+{% endblock css %}
+
+{% block body %}
+    <body>
+
+        <!-- Navbar -->
+        {% block navbar %}
+            <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+              <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="/">Simple Email</a>
+              <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <form class="w-100" action="/search/" method="get">
+                <input class="form-control form-control-dark" type="text" name="query" placeholder="Search" aria-label="Search">
+              </form>
+                <div class="dropdown px-2">
+                  <button id="dropdownMenuButton" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ user.username }}
+                  </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" href="/logout">Logout</a>
+                    {% if user.is_staff %}
+                      <a class="dropdown-item" href="/admin">Admin</a>
+                    {% endif %}
+                  </div>
+                </div>
+            </nav>
+        {% endblock navbar %}
+
+        <div class="container-fluid">
+            <div class="row">
+
+                <!-- Sidebar -->
+                {% block sidebar %}
+                    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse dark-fade ">
+                      <div class="sidebar-sticky pt-3">
+                        <ul class="nav flex-column">
+
+                          <div class="compose-button ml-3 mr-3">
+                            <a href="/compose" role="button" class="btn btn-lg btn-primary btn-color ">Compose</a>
+                          </div>
+
+                          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-color">
+                            <span>Folders</span>
+                            <a class="d-flex align-items-center text-color" href="#" aria-label="Add a new report">
+                              <span data-feather="plus-circle"></span>
+                            </a>
+                          </h6>
+
+                          <li class="nav-item">
+                            <a class="nav-link {% if folder == 'inbox' %}active{% endif %}" href="/">
+                              <span data-feather="inbox"></span>
+                              Inbox
+                            </a>
+                          </li>
+
+                      </div>
+                    </nav>
+                {% endblock sidebar %}
+
+                <!-- Main -->
+                {% block main %}
+                    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+
+                        <!-- Header -->
+                        {% block header %}{% endblock header %}
+
+                      </div>
+
+                      <!-- View -->
+                      {% block view %}{% endblock view %}
+
+                    </main>
+                {% endblock main %}
+
+              </div>
+        </div>
+
+    </body>
+{% endblock body %}
