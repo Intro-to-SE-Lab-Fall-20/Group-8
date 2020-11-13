@@ -206,16 +206,31 @@ class ComposeForm(forms.Form):
         return email
 
 
-class NoteForm(forms.ModelForm):
+class NoteForm(forms.Form):
     """
     Form for creating new notes.
     """
 
-    class Meta:
-        model = Note
-        fields = [
-            'title',
-            'body',
-            'user'
-        ]
+    title = forms.CharField()
+    body = forms.CharField()
+    user = forms.CharField()
 
+    def clean(self):
+        if not self.cleaned_data.get('title', None):
+            raise ValidationError("Title cannot be empty.")
+
+        if self.cleaned_data.get('user', None) is None:
+            raise ValidationError("No user by that username.")
+
+    def save(self):
+        try:
+            user = CustomUser.objects.get(username=self.cleaned_data['user'])
+            note = Note.objects.create(
+                title=self.cleaned_data['title'],
+                body=self.cleaned_data['body'],
+                user=user
+            )
+            note.save()
+
+        except CustomUser.DoesNotExist:
+            return False

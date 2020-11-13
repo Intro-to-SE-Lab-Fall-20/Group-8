@@ -501,11 +501,11 @@ def note_compose(request):
     """
 
     if request.method == 'POST':
-        form = NoteForm(request.POST, request.FILES)
+        form = NoteForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Note Saved!")
-            return redirect('/')
+            return redirect('/note_box')
 
         else:
             # compose is bad, notify user
