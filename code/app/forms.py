@@ -1,4 +1,7 @@
-from .models import CustomUser, Email, Sender, Recipient, Attachment
+from django.contrib.auth.hashers import get_hasher, make_password
+
+from .models import CustomUser, Email, Sender, Recipient, Attachment, Note
+
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -34,6 +37,7 @@ class UserRegistrationForm(forms.ModelForm):
 
         # hash user password
         user.set_password(self.cleaned_data["password"])
+        user.email_password = user.password
 
         # create email for user
         user.email = f"{self.cleaned_data['username']}@simpleemail.com"
@@ -43,6 +47,60 @@ class UserRegistrationForm(forms.ModelForm):
             user.save()
 
         return user
+
+
+class UserResetForm(forms.Form):
+    """
+    Form used for registering new users to Simple Email.
+    """
+
+    username = forms.CharField(max_length=128)
+    old_password = forms.CharField(max_length=128)
+    email_password = forms.CharField(max_length=128)
+    re_password = forms.CharField(max_length=128)
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # validate passwords match
+        old_password = cleaned_data.get("old_password")
+        email_password = cleaned_data.get("email_password")
+        re_password = cleaned_data.get("re_password")
+        try:
+            user = CustomUser.objects.get(username=cleaned_data.get("username"))
+            hasher = get_hasher('default')
+            is_correct = hasher.verify(old_password, user.email_password)
+
+            if not is_correct:
+                raise ValidationError(
+                    "old password is not correct."
+                )
+
+            if old_password == re_password:
+                raise ValidationError(
+                    "new password can't be the same as old password."
+                )
+
+            if email_password != re_password:
+                raise ValidationError(
+                    "Passwords do not match."
+                )
+
+        except CustomUser.DoesNotExist:
+            raise ValidationError(
+                "user with that username does not exist."
+            )
+
+    def update_password(self):
+        """
+        Updates the user's password based on cleaned input.
+        """
+
+        user = CustomUser.objects.get(username=self.cleaned_data.get("username"))
+        if user is not None:
+            # change the user's password to be the new password
+            user.email_password = make_password(self.cleaned_data.get("email_password"))
+            user.save()
 
 
 class ComposeForm(forms.Form):
@@ -146,3 +204,33 @@ class ComposeForm(forms.Form):
 
         # everything was created successfully
         return email
+
+
+class NoteForm(forms.Form):
+    """
+    Form for creating new notes.
+    """
+
+    title = forms.CharField()
+    body = forms.CharField()
+    user = forms.CharField()
+
+    def clean(self):
+        if not self.cleaned_data.get('title', None):
+            raise ValidationError("Title cannot be empty.")
+
+        if self.cleaned_data.get('user', None) is None:
+            raise ValidationError("No user by that username.")
+
+    def save(self):
+        try:
+            user = CustomUser.objects.get(username=self.cleaned_data['user'])
+            note = Note.objects.create(
+                title=self.cleaned_data['title'],
+                body=self.cleaned_data['body'],
+                user=user
+            )
+            note.save()
+
+        except CustomUser.DoesNotExist:
+            return False

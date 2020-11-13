@@ -5,8 +5,11 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
+    # splash page
+    path('', views.splash, name='splash'),
+
     # folder views (inbox, outbox, etc.)
-    path('', views.inbox, name='inbox'),
+    path('inbox', views.inbox, name='inbox'),
     path('outbox', views.outbox, name='outbox'),
 
     # view email
@@ -20,10 +23,22 @@ urlpatterns = [
     # search
     path('search/', views.search, name='search'),
 
-    # user auth
-    path('login', views.login, name='login'),
+    # master auth
+    path('login', views.master_login, name='login'),
     path('logout', views.logout, name='logout'),
     path('register', views.register, name='register'),
+    path('reset_password', views.reset_password, name= 'reset_password'),
+
+    # email auth
+    path('email_login', views.email_login, name='email_login'),
+    path('email_logout', views.email_logout, name='email_logout'),
+
+    # Note inbox
+    path('note_box', views.note_box, name='note_box'),
+    # View Note
+    path('view_note/<str:note_uid>', views.view_note, name='view_note'),
+    # Note compose
+    path('note_compose', views.note_compose, name='note_compose')
 ]
 
 # media files

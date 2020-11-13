@@ -50,7 +50,7 @@ class TestAuthGui(StaticLiveServerTestCase):
         self.driver.implicitly_wait(3)
 
         # verify we're redirected to the user's inbox
-        assert "Inbox" in self.driver.title
+        assert "App Selection" in self.driver.title
 
         # verify success message is displayed
         alert_msg = self.driver.find_element_by_class_name('ajs-success')
@@ -123,7 +123,7 @@ class TestAuthGui(StaticLiveServerTestCase):
         self.driver.implicitly_wait(3)
 
         # verify redirect to inbox
-        assert "Inbox" in self.driver.title
+        assert "App Selection" in self.driver.title
 
         # verify success message is displayed
         succ_msg = self.driver.find_element_by_class_name('ajs-success')

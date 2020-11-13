@@ -1,0 +1,21 @@
+{% extends "notes_nav.html" %}
+{% load static %}
+
+{% block css %}
+    {{ block.super }}
+    <link href="{% static 'css/compose.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block title %}
+    Simple Notes
+{% endblock title %}
+
+{% block header %}
+    <h1 class="h2 text-color">{{ note.title }}</h1>
+{% endblock header %}
+
+{% block view %}
+    <div class="text-color">
+        {{ note.body|safe }}
+    </div>
+{% endblock view %}

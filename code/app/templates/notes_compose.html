@@ -1,0 +1,71 @@
+{% extends "notes_nav.html" %}
+{% load static %}
+
+{% block css %}
+    {{ block.super }}
+    <link href="{% static '/css/compose.css' %}" rel="stylesheet">
+{% endblock css %}
+
+{% block title %}
+    Simple Notes: Compose
+{% endblock title %}
+
+{% block javascript %}
+    {{ block.super }}
+
+    {# TinyMCE Compose Text Editor #}
+    <script src="https://cdn.tiny.cloud/1/atcv4hj8bhdb3vq7uxn51n7l6fj8qom8div5jxfemgp9h2dm/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+      tinymce.init({
+        selector: '#note-body',
+          toolbar: 'undo redo | fontselect| fontsizeselect | bold italic | alignleft aligncenter alignright alignjustify | ' +
+              'bullist numlist outdent indent | link image | print preview media fullpage | ',
+          skin: 'oxide-dark',
+          browser_spellcheck: true
+      });
+    </script>
+
+    {# Delete Warning Modal #}
+    <script>
+        function display_modal(event) {
+            alertify.confirm(
+                'Confirm Discard',
+                'Are you sure you want to discard this note?',
+                function () {
+                    window.location.replace('/')
+                },
+                function () {}
+            )
+        }
+    </script>
+
+{% endblock javascript %}
+
+{% block header %}
+    <h1 class="h2 text-color">Compose</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="display_modal()">Discard</button>
+            <button type="submit" form="note-form" class="btn btn-sm btn-outline-primary">Save</button>
+        </div>
+    </div>
+{% endblock header %}
+
+{% block view %}
+    <div>
+        <form id="note-form" action="/note_compose" method="post" class="text-color" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.title.label }}
+            <br>
+            {{ form.title }}
+            <br>
+            <br>
+            <textarea id="note-body" name="{{ form.body.html_name }}"
+            rows="30" cols="33" style = 'background-color: black'>
+            </textarea>
+            <input name="{{ form.user.html_name }}" id="{{ form.user.id_for_label }}" required hidden value="{{ form.user.value }}">
+
+        </form>
+    </div>
+
+{% endblock view %}

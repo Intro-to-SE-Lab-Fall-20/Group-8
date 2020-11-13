@@ -3,14 +3,38 @@ from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.hashers import get_hasher
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from .forms import UserRegistrationForm, ComposeForm
-from .models import Recipient, Sender, Email, CustomUser
 
+from .forms import UserRegistrationForm, ComposeForm, UserResetForm, NoteForm
+from .models import Recipient, Sender, Email, CustomUser, Note
+
+
+def verify_email_auth(func, *args, **kwargs):
+    """
+    Decorator function to check if a user is logged in to the
+    Email client before granting access to a page.
+    """
+
+    def checker(*args, **kwargs):
+        request = args[0]   # should be first pos arg
+        if request is not None:
+            email_session = request.session.get('email_session', None)
+            if email_session:
+                # user is logged in, continue to view
+                return func(*args, **kwargs)
+            else:
+                # user is not logged in, warn them
+                messages.warning(request, "Please sign-in to continue.")
+
+        return redirect('/email_login')
+
+    return checker
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET'])
 def view_email(request, email_uid):
     """
@@ -38,6 +62,7 @@ def view_email(request, email_uid):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def outbox(request):
     """
@@ -68,6 +93,7 @@ def outbox(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def inbox(request):
     """
@@ -98,6 +124,7 @@ def inbox(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET'])
 def search(request):
     """
@@ -171,6 +198,7 @@ def search(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def compose(request):
     """
@@ -215,6 +243,7 @@ def compose(request):
 
 
 @login_required
+@verify_email_auth
 @require_http_methods(['GET', 'POST'])
 def forward(request, email_uid=None):
     """
@@ -267,6 +296,19 @@ def forward(request, email_uid=None):
 
 
 @login_required
+@verify_email_auth
+@require_http_methods(['GET'])
+def email_logout(request):
+    """
+    Logs a user out of the Simple Email app.
+    """
+
+    request.session['email_session'] = False
+
+    return redirect("/")
+
+
+@login_required
 @require_http_methods(['GET'])
 def logout(request):
     """
@@ -276,6 +318,9 @@ def logout(request):
 
     messages.success(request, f"See ya later {request.user.username}!")
     auth_logout(request)
+
+    # clear any existing session data
+    request.session.flush()
 
     return redirect('/login')
 
@@ -298,7 +343,7 @@ def register(request):
 
             # redirect to homepage (inbox)
             messages.success(request, f"Welcome {request.user.username}!")
-            return redirect('inbox')
+            return redirect('/')
 
         else:
             # user info is bad, notify them
@@ -308,7 +353,7 @@ def register(request):
     else:
         # check if the user is already logged in
         if request.user.is_authenticated:
-            return redirect('inbox')
+            return redirect('/')
 
         # create new form for user to register with
         form = UserRegistrationForm()
@@ -317,9 +362,104 @@ def register(request):
 
 
 @require_http_methods(["GET", "POST"])
-def login(request):
+def reset_password(request):
     """
-    Login page for Simple Email.
+    Resets the password for the email of the user that is logged into the master user
+    """
+
+    if request.method == "POST":
+        # validate user input
+        form = UserResetForm(request.POST)
+        if form.is_valid():
+            # save form to create user
+            form.update_password()
+
+            # redirect to homepage (inbox)
+            messages.success(request, f" {request.user.username}'s Password was reset!")
+            return redirect('/inbox')
+
+        else:
+            # user info is bad, notify them
+            for error, data in form.errors.items():
+                messages.error(request, data[0])
+
+    else:
+        # check if the user is already logged in
+        if request.user.is_authenticated:
+            # return redirect('/')
+            pass
+
+        # create new form for user to register with
+        form = UserResetForm()
+
+    return render(request, 'reset_password.html', {"form": form, "user": request.user})
+
+
+@require_http_methods(["GET"])
+@login_required
+def splash(request):
+    """
+    Splash page for choosing which app to use.
+    """
+
+    return render(request, 'splash.html', {})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def email_login(request):
+    """
+    Handles logging in users to access Simple Email app.
+    """
+
+    if request.method == 'POST':
+        email = request.POST['email']
+        password = request.POST['password']
+
+        try:
+            # try retrieving user object from db
+            user = CustomUser.objects.get(email=email)
+
+            # check that the user isn't locked out
+            if user.failed_attempts >= 3:
+                messages.warning(request, "User account is locked")
+
+            else:
+                # verify that the user gave the correct password
+                hasher = get_hasher('default')
+                is_correct = hasher.verify(password, user.email_password)
+
+                if is_correct:
+                    # reset lockout attempts
+                    user.failed_attempts = 0
+                    user.save()
+
+                    # log the user in and redirect to inbox
+                    request.session["email_session"] = True
+                    return redirect('/inbox')
+
+                else:
+                    # increment the lockout attempts
+                    user.failed_attempts += 1
+                    user.save()
+                    messages.warning(request, "Invalid email or password.")
+
+        except CustomUser.DoesNotExist:
+            messages.warning(request, "Invalid email or password.")
+
+    else:
+        if request.session.get("email_session", None):
+            # redirect user to inbox if user is already signed into Email
+            return redirect('/inbox')
+
+    return render(request, 'email_login.html', {})
+
+
+@require_http_methods(["GET", "POST"])
+def master_login(request):
+    """
+    Login page for entire site. This servers as a "master" login page to grant access
+    to email and notes apps.
     If this is a GET request, user is loading the login page.
     If this is a POST request, user is trying to login.
     """
@@ -332,39 +472,91 @@ def login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if user.failed_attempts >= 3:
-                messages.warning(request, "User account is locked")
+            # if the user's info is legit, log them in
+            auth_login(request, user)
 
-            else:
-                # if the user's info is legit, log them in
-                auth_login(request, user)
+            # set session expiry if remember-me check box was not checked
+            if not remember:
+                request.session.set_expiry(0)
 
-                # set session expiry if remember-me check box was not checked
-                if not remember:
-                    request.session.set_expiry(0)
-
-                # redirect to inbox
-                messages.success(request, f"Welcome back {request.user.username}!")
-                return redirect('inbox')
+            # redirect to inbox
+            messages.success(request, f"Welcome back {request.user.username}!")
+            return redirect('splash')
 
         else:
-            try:
-                # gets username if user exists increments failed_attempts column and saves user
-                user = CustomUser.objects.get(username=username)
-                user.failed_attempts += 1
-                user.save()
-
-            except CustomUser.DoesNotExist:
-                # continues if no user with that username exists
-                pass
-
             # user's info is bad, notify them
             messages.warning(request, "Invalid username or password.")
 
     else:
         # check if the user is already logged in
         if request.user.is_authenticated:
-            return redirect('inbox')
+            return redirect('splash')
 
     # serve page to user normally
     return render(request, 'login.html', {})
+
+
+@login_required
+def note_compose(request):
+    """
+    Serves the Notes page. Creates emails when users finish composing.
+    """
+
+    if request.method == 'POST':
+        form = NoteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Note Saved!")
+            return redirect('/note_box')
+
+        else:
+            # compose is bad, notify user
+            for error, data in form.errors.items():
+                if error == 'title':
+                    messages.error(request, 'Invalid title: Title cannot be empty!')
+                    continue
+
+                messages.error(request, data[0])
+
+    else:
+        form = NoteForm(initial={
+            'title': 'Untitled Note',
+            'user': request.user.username
+        })
+
+    return render(request, 'notes_compose.html', {
+        'user': request.user,
+        'form': form
+    })
+
+
+@login_required
+def note_box(request):
+    """
+    Home page of Simple Note. Serves the user's Notes.
+    """
+
+    # get all emails received by the user that have been sent
+    notes = Note.objects.all().filter(user=request.user)
+
+    return render(request, 'notes_inbox.html', {
+        'user': request.user,
+        'notes': notes
+    })
+
+
+@login_required
+def view_note(request, note_uid):
+    """
+    Handles serving individual note pages.
+    """
+
+    # fetch the requested email from the DB
+    note = Note.objects.get(uid=note_uid)
+
+    return render(request, 'view_notes.html', {
+        'user': request.user,
+        'note': note
+    })
+
+

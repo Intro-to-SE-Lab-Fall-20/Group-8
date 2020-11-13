@@ -194,11 +194,25 @@ class TestCompose(TestCase):
             'username': 'test_user',
             'password': 'test_password'
         }
-        self.sender = CustomUser.objects.create_user(**self.credentials, email="test_user@email.com")
+        self.sender = CustomUser.objects.create_user(
+            username=self.credentials['username'],
+            password=self.credentials['password'],
+            email=f"{self.credentials['username']}@simpleemail.com",
+        )
+        self.sender.email_password = self.sender.password
+        self.sender.save()
 
         # create test client and log in as sender user
         self.client = Client()
         self.client.login(**self.credentials)
+        self.client.post(
+            path='/email_login',
+            data={
+                'email': self.sender.email,
+                'password': self.credentials['password']
+            },
+            follow=True
+        )
 
         # create some recipient users
         self.recipients = [
@@ -460,10 +474,20 @@ class TestInbox(TestCase):
             'password': 'test_password'
         }
         self.test_user_one = CustomUser.objects.create_user(**self.credentials)
+        self.test_user_one.email_password = self.test_user_one.password
+        self.test_user_one.save()
 
         # create test client and log in the user
         self.client = Client()
         self.client.login(**self.credentials)
+        self.client.post(
+            path='/email_login',
+            data={
+                'email': self.test_user_one.email,
+                'password': self.credentials['password']
+            },
+            follow=True
+        )
 
         # create a secondary test user
         self.test_user_two = CustomUser.objects.create_user(
@@ -524,7 +548,7 @@ class TestInbox(TestCase):
         )
 
         # check that the inbox renders this email correctly
-        response = self.client.get('/')
+        response = self.client.get('/inbox')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['emails']), 2)
 
@@ -586,10 +610,20 @@ class TestSearch(TestCase):
             **self.credentials,
             email="user_one@email.com"
         )
+        self.test_user_one.email_password = self.test_user_one.password
+        self.test_user_one.save()
 
         # create test client and log in the user
         self.client = Client()
         self.client.login(**self.credentials)
+        self.client.post(
+            path='/email_login',
+            data={
+                'email': self.test_user_one.email,
+                'password': self.credentials['password']
+            },
+            follow=True
+        )
 
         # create some additional test users
         self.test_user_two = CustomUser.objects.create_user(
