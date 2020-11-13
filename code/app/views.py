@@ -7,8 +7,9 @@ from django.contrib.auth.hashers import get_hasher
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 
-from .forms import UserRegistrationForm, ComposeForm, UserResetForm
-from .models import Recipient, Sender, Email, CustomUser
+
+from .forms import UserRegistrationForm, ComposeForm, UserResetForm, NoteForm
+from .models import Recipient, Sender, Email, CustomUser, Note
 
 
 def verify_email_auth(func, *args, **kwargs):
@@ -491,3 +492,69 @@ def master_login(request):
 
     # serve page to user normally
     return render(request, 'login.html', {})
+
+
+@login_required
+def note_compose(request):
+    """
+    Serves the Notes page. Creates emails when users finish composing.
+    """
+
+    if request.method == 'POST':
+        form = NoteForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Note Saved!")
+            return redirect('/')
+
+        else:
+            # compose is bad, notify user
+            for error, data in form.errors.items():
+                if error == 'title':
+                    messages.error(request, 'Invalid title: Title cannot be empty!')
+                    continue
+
+                messages.error(request, data[0])
+
+    else:
+        form = NoteForm(initial={
+            'title': 'Untitled Note',
+            'user': request.user.username
+        })
+
+    return render(request, 'notes_compose.html', {
+        'user': request.user,
+        'form': form
+    })
+
+
+@login_required
+def note_box(request):
+    """
+    Home page of Simple Note. Serves the user's Notes.
+    """
+
+    # get all emails received by the user that have been sent
+    notes = Note.objects.all().filter(user=request.user)
+
+    return render(request, 'notes_inbox.html', {
+        'user': request.user,
+        'notes': notes
+    })
+
+
+@login_required
+def view_note(request, note_uid):
+    """
+    Handles serving individual note pages.
+    """
+
+    # fetch the requested email from the DB
+    note = Note.objects.get(uid=note_uid)
+
+    return render(request, 'view_notes.html', {
+        'user': request.user,
+        'note': note
+    })
+
+

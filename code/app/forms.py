@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import get_hasher, make_password
 
-from .models import CustomUser, Email, Sender, Recipient, Attachment
+from .models import CustomUser, Email, Sender, Recipient, Attachment, Note
+
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -203,3 +204,18 @@ class ComposeForm(forms.Form):
 
         # everything was created successfully
         return email
+
+
+class NoteForm(forms.ModelForm):
+    """
+    Form for creating new notes.
+    """
+
+    class Meta:
+        model = Note
+        fields = [
+            'title',
+            'body',
+            'user'
+        ]
+

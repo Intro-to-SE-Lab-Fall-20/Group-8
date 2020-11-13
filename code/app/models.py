@@ -81,3 +81,15 @@ class Attachment(models.Model):
     type = models.CharField(max_length=20, choices=ATTACH_CHOICES, default=FILE)
     file = models.FileField(upload_to='uploads/files/%Y/%m/%d/')
     image = models.ImageField(upload_to='uploads/images/%Y/%m/%d/')
+
+
+class Note(models.Model):
+
+    uid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    body = models.TextField(blank=True, null=True)
+    title = models.TextField(blank=False)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.title}: {self.body}"
+

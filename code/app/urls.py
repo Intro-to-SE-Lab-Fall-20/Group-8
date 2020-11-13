@@ -32,6 +32,13 @@ urlpatterns = [
     # email auth
     path('email_login', views.email_login, name='email_login'),
     path('email_logout', views.email_logout, name='email_logout'),
+
+    # Note inbox
+    path('note_box', views.note_box, name='note_box'),
+    # View Note
+    path('view_note/<str:note_uid>', views.view_note, name='view_note'),
+    # Note compose
+    path('note_compose', views.note_compose, name='note_compose')
 ]
 
 # media files
