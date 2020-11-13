@@ -48,22 +48,15 @@ class UserRegistrationForm(forms.ModelForm):
         return user
 
 
-class UserResetForm(forms.ModelForm):
+class UserResetForm(forms.Form):
     """
     Form used for registering new users to Simple Email.
     """
 
-    re_password = forms.CharField(max_length=128)
+    username = forms.CharField(max_length=128)
     old_password = forms.CharField(max_length=128)
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            'username',
-            'old_password',
-            'email_password',
-            're_password'
-        ]
+    email_password = forms.CharField(max_length=128)
+    re_password = forms.CharField(max_length=128)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -74,7 +67,6 @@ class UserResetForm(forms.ModelForm):
         re_password = cleaned_data.get("re_password")
         try:
             user = CustomUser.objects.get(username=cleaned_data.get("username"))
-
             hasher = get_hasher('default')
             is_correct = hasher.verify(old_password, user.email_password)
 
@@ -98,17 +90,16 @@ class UserResetForm(forms.ModelForm):
                 "user with that username does not exist."
             )
 
-    def save(self, user, commit=True):
-        # user = super().save(commit=False)
+    def update_password(self):
+        """
+        Updates the user's password based on cleaned input.
+        """
 
-        # hash user password
-        user.set_password(self.cleaned_data["email_password"])
-
-        # save user to DB
-        if commit:
+        user = CustomUser.objects.get(username=self.cleaned_data.get("username"))
+        if user is not None:
+            # change the user's password to be the new password
+            user.email_password = make_password(self.cleaned_data.get("email_password"))
             user.save()
-
-        return user
 
 
 class ComposeForm(forms.Form):

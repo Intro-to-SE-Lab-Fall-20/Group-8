@@ -371,7 +371,7 @@ def reset_password(request):
         form = UserResetForm(request.POST)
         if form.is_valid():
             # save form to create user
-            user = form.save(user=request.user)
+            form.update_password()
 
             # redirect to homepage (inbox)
             messages.success(request, f" {request.user.username}'s Password was reset!")
