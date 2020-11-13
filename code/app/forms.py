@@ -1,3 +1,5 @@
+from django.contrib.auth.hashers import get_hasher, make_password
+
 from .models import CustomUser, Email, Sender, Recipient, Attachment
 from django import forms
 from django.core.exceptions import ValidationError
@@ -38,6 +40,69 @@ class UserRegistrationForm(forms.ModelForm):
 
         # create email for user
         user.email = f"{self.cleaned_data['username']}@simpleemail.com"
+
+        # save user to DB
+        if commit:
+            user.save()
+
+        return user
+
+
+class UserResetForm(forms.ModelForm):
+    """
+    Form used for registering new users to Simple Email.
+    """
+
+    re_password = forms.CharField(max_length=128)
+    old_password = forms.CharField(max_length=128)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'username',
+            'old_password',
+            'email_password',
+            're_password'
+        ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # validate passwords match
+        old_password = cleaned_data.get("old_password")
+        email_password = cleaned_data.get("email_password")
+        re_password = cleaned_data.get("re_password")
+        try:
+            user = CustomUser.objects.get(username=cleaned_data.get("username"))
+
+            hasher = get_hasher('default')
+            is_correct = hasher.verify(old_password, user.email_password)
+
+            if not is_correct:
+                raise ValidationError(
+                    "old password is not correct."
+                )
+
+            if old_password == re_password:
+                raise ValidationError(
+                    "new password can't be the same as old password."
+                )
+
+            if email_password != re_password:
+                raise ValidationError(
+                    "Passwords do not match."
+                )
+
+        except CustomUser.DoesNotExist:
+            raise ValidationError(
+                "user with that username does not exist."
+            )
+
+    def save(self, user, commit=True):
+        # user = super().save(commit=False)
+
+        # hash user password
+        user.set_password(self.cleaned_data["email_password"])
 
         # save user to DB
         if commit:
